@@ -11,9 +11,10 @@ export async function generateStaticParams() {
 export default async function DocPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const doc = await getDocHtml(params.slug);
+  const resolvedParams = await params;
+  const doc = await getDocHtml(resolvedParams.slug);
 
   if (!doc) {
     return (
