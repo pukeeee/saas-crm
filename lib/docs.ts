@@ -15,7 +15,13 @@ export function getDocSlugs() {
 }
 
 export function getDocBySlug(slug: string) {
+  if (!slug) {
+    return null;
+  }
   const fullPath = path.join(docsDirectory, slug, 'README.md');
+  if (!fs.existsSync(fullPath)) {
+    return null;
+  }
   const fileContents = fs.readFileSync(fullPath, 'utf8');
 
   // Use gray-matter to parse the post metadata section
@@ -34,6 +40,12 @@ export function getDocBySlug(slug: string) {
 export async function getDocHtml(slug: string) {
     const doc = getDocBySlug(slug);
 
+    if (!doc) {
+        return {
+            contentHtml: ''
+        }
+    }
+
     const processedContent = await remark()
         .use(html)
         .use(gfm)
@@ -50,6 +62,7 @@ export function getAllDocs() {
   const slugs = getDocSlugs();
   const docs = slugs
     .map(slug => getDocBySlug(slug))
+    .filter((doc): doc is { slug: string; title: string; content: string; } => doc !== null)
     // sort posts by date in descending order
     .sort((doc1, doc2) => (doc1.slug > doc2.slug ? 1 : -1));
   return docs;

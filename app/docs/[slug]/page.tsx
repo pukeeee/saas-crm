@@ -13,8 +13,15 @@ export default async function DocPage({
 }: {
   params: { slug: string };
 }) {
-  const resolvedParams = await params;
-  const doc = await getDocHtml(resolvedParams.slug);
+  const doc = await getDocHtml(params.slug);
+
+  if (!doc) {
+    return (
+      <main className="prose max-w-none">
+        <h1>Document not found.</h1>
+      </main>
+    );
+  }
 
   return (
     <main

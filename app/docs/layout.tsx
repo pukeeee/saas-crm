@@ -1,13 +1,12 @@
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { getAllDocs } from "@/lib/docs";
 import { DocsLayoutClient } from "./DocsLayoutClient";
+import React from "react";
 
 export default function DocsLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params: { slug?: string };
 }) {
   const allDocs = getAllDocs();
   return (
