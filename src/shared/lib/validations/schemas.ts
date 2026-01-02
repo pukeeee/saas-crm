@@ -225,8 +225,23 @@ export const WorkspaceQuotaSchema = z.object({
   updated_at: z.iso.datetime(),
 });
 
+export const PaymentSchema = z.object({
+  id: UUIDSchema,
+  subscription_id: UUIDSchema,
+  workspace_id: UUIDSchema,
+  amount: z.number().nonnegative(),
+  currency: z.string(),
+  status: PaymentStatusSchema,
+  payment_provider: z.string(),
+  external_payment_id: z.string().nullable(),
+  invoice_url: z.string().url().nullable(),
+  created_at: z.iso.datetime(),
+  completed_at: z.iso.datetime().nullable(),
+});
+
 export type Subscription = z.infer<typeof SubscriptionSchema>;
 export type WorkspaceQuota = z.infer<typeof WorkspaceQuotaSchema>;
+export type Payment = z.infer<typeof PaymentSchema>;
 
 // ============================================================================
 // CONTACTS & COMPANIES
@@ -247,7 +262,7 @@ export const ContactSchema = z.object({
   tags: z.array(z.string()).default([]),
   source: z.string().max(100).optional().nullable(),
   owner_id: UUIDSchema.nullable(),
-  custom_fields: z.record(z.any()).default({}),
+  custom_fields: z.record(z.string(), z.any()).default({}),
   created_by: UUIDSchema.nullable(),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
@@ -285,12 +300,12 @@ export const CompanySchema = z.object({
   website: URLSchema.nullable(),
   phone: z.string().max(20).optional().nullable(),
   email: EmailSchema.optional().nullable(),
-  address: z.record(z.any()).default({}),
+  address: z.record(z.string(), z.any()).default({}),
   status: CompanyStatusSchema,
   tags: z.array(z.string()).default([]),
   source: z.string().max(100).optional().nullable(),
   owner_id: UUIDSchema.nullable(),
-  custom_fields: z.record(z.any()).default({}),
+  custom_fields: z.record(z.string(), z.any()).default({}),
   created_by: UUIDSchema.nullable(),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
@@ -348,7 +363,7 @@ export const DealSchema = z.object({
   status: DealStatusSchema,
   lost_reason: z.string().max(500).optional().nullable(),
   tags: z.array(z.string()).default([]),
-  custom_fields: z.record(z.any()).default({}),
+  custom_fields: z.record(z.string(), z.any()).default({}),
   created_by: UUIDSchema.nullable(),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
@@ -375,10 +390,21 @@ export const UpdateDealSchema = CreateDealSchema.partial().extend({
   lost_reason: z.string().max(500).optional().nullable(),
 });
 
+export const DealStageHistorySchema = z.object({
+  id: UUIDSchema,
+  deal_id: UUIDSchema,
+  from_stage_id: z.string().nullable(),
+  to_stage_id: z.string(),
+  user_id: UUIDSchema,
+  duration_seconds: z.number().int().nullable(),
+  created_at: z.iso.datetime(),
+});
+
 export type Pipeline = z.infer<typeof PipelineSchema>;
 export type Deal = z.infer<typeof DealSchema>;
 export type CreateDeal = z.infer<typeof CreateDealSchema>;
 export type UpdateDeal = z.infer<typeof UpdateDealSchema>;
+export type DealStageHistory = z.infer<typeof DealStageHistorySchema>;
 
 // Deal Products
 export const DealProductSchema = z.object({
@@ -409,6 +435,16 @@ export type CreateDealProduct = z.infer<typeof CreateDealProductSchema>;
 // PRODUCTS & SERVICES
 // ============================================================================
 
+export const ProductCategorySchema = z.object({
+  id: UUIDSchema,
+  workspace_id: UUIDSchema,
+  parent_id: UUIDSchema.nullable(),
+  name: z.string(),
+  order_index: z.number().int().default(0),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
+});
+
 export const ProductSchema = z.object({
   id: UUIDSchema,
   workspace_id: UUIDSchema,
@@ -425,6 +461,15 @@ export const ProductSchema = z.object({
   deleted_at: z.iso.datetime().nullable(),
 });
 
+export const ProductPriceHistorySchema = z.object({
+  id: UUIDSchema,
+  product_id: UUIDSchema,
+  old_price: z.number().nonnegative().nullable(),
+  new_price: z.number().nonnegative(),
+  changed_by: UUIDSchema.nullable(),
+  changed_at: z.iso.datetime(),
+});
+
 export const CreateProductSchema = ProductSchema.pick({
   category_id: true,
   name: true,
@@ -438,9 +483,11 @@ export const CreateProductSchema = ProductSchema.pick({
 
 export const UpdateProductSchema = CreateProductSchema.partial();
 
+export type ProductCategory = z.infer<typeof ProductCategorySchema>;
 export type Product = z.infer<typeof ProductSchema>;
 export type CreateProduct = z.infer<typeof CreateProductSchema>;
 export type UpdateProduct = z.infer<typeof UpdateProductSchema>;
+export type ProductPriceHistory = z.infer<typeof ProductPriceHistorySchema>;
 
 // ============================================================================
 // TASKS
@@ -497,7 +544,7 @@ export const ActivitySchema = z.object({
   workspace_id: UUIDSchema,
   activity_type: ActivityTypeSchema,
   content: z.string().max(2000).optional().nullable(),
-  metadata: z.record(z.any()).default({}),
+  metadata: z.record(z.string(), z.any()).default({}),
   contact_id: UUIDSchema.nullable(),
   deal_id: UUIDSchema.nullable(),
   company_id: UUIDSchema.nullable(),
@@ -559,6 +606,21 @@ export const FileSchema = z.object({
 });
 
 export type File = z.infer<typeof FileSchema>;
+
+// ============================================================================
+// INTEGRATIONS
+// ============================================================================
+
+export const IntegrationsSchema = z.object({
+  workspace_id: UUIDSchema,
+  nova_poshta_api_key: z.string().nullable(),
+  nova_poshta_settings: z.record(z.string(), z.any()).default({}),
+  smtp_settings: z.record(z.string(), z.any()).default({}),
+  sms_settings: z.record(z.string(), z.any()).default({}),
+  updated_at: z.iso.datetime(),
+});
+
+export type Integrations = z.infer<typeof IntegrationsSchema>;
 
 // ============================================================================
 // API RESPONSE TYPES
