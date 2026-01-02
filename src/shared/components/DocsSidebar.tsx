@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/shared/lib/utils";
+import { cn } from "@/shared/lib/utils/utils";
 import { X } from "lucide-react";
 
 export function DocsSidebar({
@@ -33,40 +33,42 @@ export function DocsSidebar({
             <X className="h-6 w-6 text-white" />
           </button>
         </div>
-        <nav className="mt-8 h-full">
-          <ul className="space-y-2">
-            <li>
-              <Link
-                href={`/`}
-                onClick={toggleSidebar}
-                className={cn(
-                  "block w-full rounded-md px-3 py-2 text-sm font-medium",
-                  pathname === "/"
-                    ? "bg-gray-700 text-white hover:bg-gray-600"
-                    : "text-gray-400 hover:bg-gray-800 hover:text-white",
-                )}
-              >
-                Home
-              </Link>
-            </li>
-            {allDocs.map((doc) => (
-              <li key={doc.slug}>
+        <div className="h-[calc(100%-4rem)] overflow-y-auto p-1">
+          <nav className="h-full">
+            <ul className="space-y-2">
+              <li>
                 <Link
-                  href={`/docs/${doc.slug}`}
+                  href={`/`}
                   onClick={toggleSidebar}
                   className={cn(
                     "block w-full rounded-md px-3 py-2 text-sm font-medium",
-                    pathname === `/docs/${doc.slug}`
+                    pathname === "/"
                       ? "bg-gray-700 text-white hover:bg-gray-600"
                       : "text-gray-400 hover:bg-gray-800 hover:text-white",
                   )}
                 >
-                  {doc.title}
+                  Home
                 </Link>
               </li>
-            ))}
-          </ul>
-        </nav>
+              {allDocs.map((doc) => (
+                <li key={doc.slug}>
+                  <Link
+                    href={`/docs/${doc.slug}`}
+                    onClick={toggleSidebar}
+                    className={cn(
+                      "block w-full rounded-md px-3 py-2 text-sm font-medium",
+                      pathname === `/docs/${doc.slug}`
+                        ? "bg-gray-700 text-white hover:bg-gray-600"
+                        : "text-gray-400 hover:bg-gray-800 hover:text-white",
+                    )}
+                  >
+                    {doc.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
       </aside>
     </>
   );

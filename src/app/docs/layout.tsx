@@ -1,5 +1,5 @@
 import { ScrollToTop } from "@/shared/components/ScrollToTop";
-import { getAllDocs } from "@/shared/lib/docs";
+import { getAllDocs } from "@/shared/lib/utils/docs";
 import { DocsLayoutClient } from "./DocsLayoutClient";
 import React from "react";
 
