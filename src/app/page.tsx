@@ -6,8 +6,16 @@ export default function Page() {
       <main className="flex flex-col items-center justify-center flex-1 px-20 text-center">
         <h1 className="text-4xl font-bold mb-6">Welcome to SaaS CRM</h1>
         <p className="mb-8">
-          <Link href="/docs" className="text-blue-500 hover:underline text-lg">
+          <Link href="/docs" className=" text-primary hover:underline text-lg">
             Переглянути документацію
+          </Link>
+        </p>
+        <p className="mb-8">
+          <Link
+            href="/dashboard"
+            className=" text-primary hover:underline text-lg"
+          >
+            Перейти в дашборд
           </Link>
         </p>
       </main>

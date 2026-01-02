@@ -26,7 +26,7 @@ export default async function DocPage({
 
   return (
     <main
-      className="prose max-w-none"
+      className="prose max-w-none dark:prose-invert"
       dangerouslySetInnerHTML={{ __html: doc.contentHtml }}
     />
   );

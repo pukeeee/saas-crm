@@ -10,7 +10,7 @@ export default function DocsPage() {
 
   // Handle the case where there are no docs
   return (
-    <main className="prose max-w-none">
+    <main className="prose max-w-none dark:prose-invert">
       <h1>No documentation found.</h1>
     </main>
   );
