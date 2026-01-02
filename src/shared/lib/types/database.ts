@@ -1,7 +1,7 @@
 /**
- * Database types for Supabase
- * This file is manually maintained to reflect the database schema.
- * It should be kept in sync with migrations and Zod schemas.
+ * Типи бази даних для Supabase.
+ * Цей файл підтримується вручну для відображення схеми бази даних.
+ * Його слід тримати в синхронізації з міграціями та Zod-схемами.
  */
 
 export type Json =
@@ -16,8 +16,10 @@ export interface Database {
   public: {
     Tables: {
       // ======================================================
-      // Existing Tables (checked and verified)
+      // Секція: Робочі простори та користувачі
       // ======================================================
+      
+      /** Робочі простори (організації) */
       workspaces: {
         Row: {
           id: string;
@@ -50,6 +52,8 @@ export interface Database {
           deleted_at?: string | null;
         };
       };
+      
+      /** Користувачі робочих просторів (зв'язок "багато-до-багатьох" з ролями) */
       workspace_users: {
         Row: {
           id: string;
@@ -85,6 +89,12 @@ export interface Database {
           updated_at?: string;
         };
       };
+      
+      // ======================================================
+      // Секція: Білінг та підписки
+      // ======================================================
+
+      /** Підписки робочих просторів на тарифні плани */
       subscriptions: {
         Row: {
           id: string;
@@ -135,6 +145,8 @@ export interface Database {
           updated_at?: string;
         };
       };
+      
+      /** Квоти робочого простору відповідно до тарифного плану */
       workspace_quotas: {
         Row: {
           workspace_id: string;
@@ -173,6 +185,12 @@ export interface Database {
           updated_at?: string;
         };
       };
+
+      // ======================================================
+      // Секція: CRM-сутності (Контакти та Компанії)
+      // ======================================================
+
+      /** Контакти (фізичні особи) */
       contacts: {
         Row: {
           id: string;
@@ -236,6 +254,8 @@ export interface Database {
           deleted_at?: string | null;
         };
       };
+      
+      /** Компанії (юридичні особи) */
       companies: {
         Row: {
           id: string;
@@ -298,6 +318,12 @@ export interface Database {
           deleted_at?: string | null;
         };
       };
+
+      // ======================================================
+      // Секція: Угоди та воронки
+      // ======================================================
+
+      /** Воронки продажів (пайплайни) */
       pipelines: {
         Row: {
           id: string;
@@ -327,6 +353,8 @@ export interface Database {
           updated_at?: string;
         };
       };
+      
+      /** Угоди */
       deals: {
         Row: {
           id: string;
@@ -398,6 +426,8 @@ export interface Database {
           deleted_at?: string | null;
         };
       };
+      
+      /** Продукти, що прив'язані до угоди */
       deal_products: {
         Row: {
           id: string;
@@ -431,6 +461,12 @@ export interface Database {
           notes?: string | null;
         };
       };
+
+      // ======================================================
+      // Секція: Продукти та Послуги
+      // ======================================================
+
+      /** Продукти та послуги */
       products: {
         Row: {
           id: string;
@@ -478,6 +514,12 @@ export interface Database {
           deleted_at?: string | null;
         };
       };
+
+      // ======================================================
+      // Секція: Задачі та Активності
+      // ======================================================
+
+      /** Задачі */
       tasks: {
         Row: {
           id: string;
@@ -540,6 +582,8 @@ export interface Database {
           deleted_at?: string | null;
         };
       };
+      
+      /** Стрічка активностей (timeline) */
       activities: {
         Row: {
           id: string;
@@ -581,6 +625,12 @@ export interface Database {
           created_at?: string;
         };
       };
+
+      // ======================================================
+      // Секція: Файли та Сповіщення
+      // ======================================================
+
+      /** Сповіщення для користувачів */
       notifications: {
         Row: {
           id: string;
@@ -619,6 +669,8 @@ export interface Database {
           created_at?: string;
         };
       };
+      
+      /** Файли та вкладення */
       files: {
         Row: {
           id: string;
@@ -668,8 +720,10 @@ export interface Database {
       };
 
       // ======================================================
-      // Missing Tables (Added)
+      // Додані відсутні таблиці
       // ======================================================
+      
+      /** Історія платежів */
       payments: {
         Row: {
           id: string;
@@ -711,6 +765,8 @@ export interface Database {
           completed_at?: string | null;
         };
       };
+      
+      /** Історія змін етапів угод (для аналітики) */
       deal_stage_history: {
         Row: {
           id: string;
@@ -740,6 +796,8 @@ export interface Database {
           created_at?: string;
         };
       };
+      
+      /** Категорії продуктів (ієрархічна структура) */
       product_categories: {
         Row: {
           id: string;
@@ -769,6 +827,8 @@ export interface Database {
           updated_at?: string;
         };
       };
+      
+      /** Історія змін цін на продукти */
       product_price_history: {
         Row: {
           id: string;
@@ -795,6 +855,8 @@ export interface Database {
           changed_at?: string;
         };
       };
+      
+      /** Налаштування інтеграцій (Нова Пошта, SMTP, SMS) */
       integrations: {
         Row: {
           workspace_id: string;
@@ -822,6 +884,9 @@ export interface Database {
         };
       };
     };
+    /**
+     * Перелічувані типи (ENUMs), що використовуються в базі даних.
+     */
     Enums: {
       user_role: "owner" | "admin" | "manager" | "user" | "guest";
       workspace_user_status: "pending" | "active" | "suspended";
@@ -843,6 +908,9 @@ export interface Database {
         | "updated";
       payment_status: "pending" | "completed" | "failed" | "refunded";
     };
+    /**
+     * Функції бази даних, доступні через API.
+     */
     Functions: {
       get_current_workspace_id: {
         Args: Record<string, never>;
