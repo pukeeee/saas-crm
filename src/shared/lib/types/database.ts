@@ -1,903 +1,1161 @@
-/**
- * Типи бази даних для Supabase.
- * Цей файл підтримується вручну для відображення схеми бази даних.
- * Його слід тримати в синхронізації з міграціями та Zod-схемами.
- */
-
 export type Json =
   | string
   | number
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[];
+  | Json[]
 
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.1"
+  }
   public: {
     Tables: {
-      // ======================================================
-      // Секція: Робочі простори та користувачі
-      // ======================================================
-      
-      /** Робочі простори (організації) */
-      workspaces: {
-        Row: {
-          id: string;
-          name: string;
-          slug: string;
-          owner_id: string;
-          settings: Json;
-          created_at: string;
-          updated_at: string;
-          deleted_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          slug: string;
-          owner_id: string;
-          settings?: Json;
-          created_at?: string;
-          updated_at?: string;
-          deleted_at?: string | null;
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          slug?: string;
-          owner_id?: string;
-          settings?: Json;
-          created_at?: string;
-          updated_at?: string;
-          deleted_at?: string | null;
-        };
-      };
-      
-      /** Користувачі робочих просторів (зв'язок "багато-до-багатьох" з ролями) */
-      workspace_users: {
-        Row: {
-          id: string;
-          workspace_id: string;
-          user_id: string;
-          role: Database["public"]["Enums"]["user_role"];
-          status: Database["public"]["Enums"]["workspace_user_status"];
-          invited_by: string | null;
-          invited_at: string;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          workspace_id: string;
-          user_id: string;
-          role?: Database["public"]["Enums"]["user_role"];
-          status?: Database["public"]["Enums"]["workspace_user_status"];
-          invited_by?: string | null;
-          invited_at?: string;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          workspace_id?: string;
-          user_id?: string;
-          role?: Database["public"]["Enums"]["user_role"];
-          status?: Database["public"]["Enums"]["workspace_user_status"];
-          invited_by?: string | null;
-          invited_at?: string;
-          created_at?: string;
-          updated_at?: string;
-        };
-      };
-      
-      // ======================================================
-      // Секція: Білінг та підписки
-      // ======================================================
-
-      /** Підписки робочих просторів на тарифні плани */
-      subscriptions: {
-        Row: {
-          id: string;
-          workspace_id: string;
-          tier: Database["public"]["Enums"]["subscription_tier"];
-          status: Database["public"]["Enums"]["subscription_status"];
-          billing_period: "monthly" | "annual";
-          current_period_start: string;
-          current_period_end: string;
-          trial_ends_at: string | null;
-          cancelled_at: string | null;
-          payment_provider: "paddle" | "fondy" | "stripe" | null;
-          external_subscription_id: string | null;
-          enabled_modules: string[];
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          workspace_id: string;
-          tier?: Database["public"]["Enums"]["subscription_tier"];
-          status?: Database["public"]["Enums"]["subscription_status"];
-          billing_period?: "monthly" | "annual";
-          current_period_start?: string;
-          current_period_end?: string;
-          trial_ends_at?: string | null;
-          cancelled_at?: string | null;
-          payment_provider?: "paddle" | "fondy" | "stripe" | null;
-          external_subscription_id?: string | null;
-          enabled_modules?: string[];
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          workspace_id?: string;
-          tier?: Database["public"]["Enums"]["subscription_tier"];
-          status?: Database["public"]["Enums"]["subscription_status"];
-          billing_period?: "monthly" | "annual";
-          current_period_start?: string;
-          current_period_end?: string;
-          trial_ends_at?: string | null;
-          cancelled_at?: string | null;
-          payment_provider?: "paddle" | "fondy" | "stripe" | null;
-          external_subscription_id?: string | null;
-          enabled_modules?: string[];
-          created_at?: string;
-          updated_at?: string;
-        };
-      };
-      
-      /** Квоти робочого простору відповідно до тарифного плану */
-      workspace_quotas: {
-        Row: {
-          workspace_id: string;
-          max_users: number;
-          max_contacts: number;
-          max_deals: number;
-          max_storage_mb: number;
-          current_users: number;
-          current_contacts: number;
-          current_deals: number;
-          current_storage_mb: number;
-          updated_at: string;
-        };
-        Insert: {
-          workspace_id: string;
-          max_users?: number;
-          max_contacts?: number;
-          max_deals?: number;
-          max_storage_mb?: number;
-          current_users?: number;
-          current_contacts?: number;
-          current_deals?: number;
-          current_storage_mb?: number;
-          updated_at?: string;
-        };
-        Update: {
-          workspace_id?: string;
-          max_users?: number;
-          max_contacts?: number;
-          max_deals?: number;
-          max_storage_mb?: number;
-          current_users?: number;
-          current_contacts?: number;
-          current_deals?: number;
-          current_storage_mb?: number;
-          updated_at?: string;
-        };
-      };
-
-      // ======================================================
-      // Секція: CRM-сутності (Контакти та Компанії)
-      // ======================================================
-
-      /** Контакти (фізичні особи) */
-      contacts: {
-        Row: {
-          id: string;
-          workspace_id: string;
-          company_id: string | null;
-          first_name: string;
-          last_name: string;
-          middle_name: string | null;
-          full_name: string;
-          phones: Json;
-          emails: Json;
-          position: string | null;
-          status: Database["public"]["Enums"]["contact_status"];
-          tags: string[];
-          source: string | null;
-          owner_id: string | null;
-          custom_fields: Json;
-          created_by: string | null;
-          created_at: string;
-          updated_at: string;
-          deleted_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          workspace_id: string;
-          company_id?: string | null;
-          first_name: string;
-          last_name: string;
-          middle_name?: string | null;
-          phones?: Json;
-          emails?: Json;
-          position?: string | null;
-          status?: Database["public"]["Enums"]["contact_status"];
-          tags?: string[];
-          source?: string | null;
-          owner_id?: string | null;
-          custom_fields?: Json;
-          created_by?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          deleted_at?: string | null;
-        };
-        Update: {
-          id?: string;
-          workspace_id?: string;
-          company_id?: string | null;
-          first_name?: string;
-          last_name?: string;
-          middle_name?: string | null;
-          phones?: Json;
-          emails?: Json;
-          position?: string | null;
-          status?: Database["public"]["Enums"]["contact_status"];
-          tags?: string[];
-          source?: string | null;
-          owner_id?: string | null;
-          custom_fields?: Json;
-          created_by?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          deleted_at?: string | null;
-        };
-      };
-      
-      /** Компанії (юридичні особи) */
-      companies: {
-        Row: {
-          id: string;
-          workspace_id: string;
-          name: string;
-          legal_name: string | null;
-          edrpou: string | null;
-          website: string | null;
-          phone: string | null;
-          email: string | null;
-          address: Json;
-          status: Database["public"]["Enums"]["company_status"];
-          tags: string[];
-          source: string | null;
-          owner_id: string | null;
-          custom_fields: Json;
-          created_by: string | null;
-          created_at: string;
-          updated_at: string;
-          deleted_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          workspace_id: string;
-          name: string;
-          legal_name?: string | null;
-          edrpou?: string | null;
-          website?: string | null;
-          phone?: string | null;
-          email?: string | null;
-          address?: Json;
-          status?: Database["public"]["Enums"]["company_status"];
-          tags?: string[];
-          source?: string | null;
-          owner_id?: string | null;
-          custom_fields?: Json;
-          created_by?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          deleted_at?: string | null;
-        };
-        Update: {
-          id?: string;
-          workspace_id?: string;
-          name?: string;
-          legal_name?: string | null;
-          edrpou?: string | null;
-          website?: string | null;
-          phone?: string | null;
-          email?: string | null;
-          address?: Json;
-          status?: Database["public"]["Enums"]["company_status"];
-          tags?: string[];
-          source?: string | null;
-          owner_id?: string | null;
-          custom_fields?: Json;
-          created_by?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          deleted_at?: string | null;
-        };
-      };
-
-      // ======================================================
-      // Секція: Угоди та воронки
-      // ======================================================
-
-      /** Воронки продажів (пайплайни) */
-      pipelines: {
-        Row: {
-          id: string;
-          workspace_id: string;
-          name: string;
-          is_default: boolean;
-          stages: Json;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          workspace_id: string;
-          name: string;
-          is_default?: boolean;
-          stages: Json;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          workspace_id?: string;
-          name?: string;
-          is_default?: boolean;
-          stages?: Json;
-          created_at?: string;
-          updated_at?: string;
-        };
-      };
-      
-      /** Угоди */
-      deals: {
-        Row: {
-          id: string;
-          workspace_id: string;
-          pipeline_id: string;
-          stage_id: string;
-          title: string;
-          amount: number;
-          currency: string;
-          probability: number;
-          contact_id: string | null;
-          company_id: string | null;
-          owner_id: string;
-          expected_close_date: string | null;
-          actual_close_date: string | null;
-          status: Database["public"]["Enums"]["deal_status"];
-          lost_reason: string | null;
-          tags: string[];
-          custom_fields: Json;
-          created_by: string | null;
-          created_at: string;
-          updated_at: string;
-          deleted_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          workspace_id: string;
-          pipeline_id: string;
-          stage_id: string;
-          title: string;
-          amount?: number;
-          currency?: string;
-          probability?: number;
-          contact_id?: string | null;
-          company_id?: string | null;
-          owner_id: string;
-          expected_close_date?: string | null;
-          actual_close_date?: string | null;
-          status?: Database["public"]["Enums"]["deal_status"];
-          lost_reason?: string | null;
-          tags?: string[];
-          custom_fields?: Json;
-          created_by?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          deleted_at?: string | null;
-        };
-        Update: {
-          id?: string;
-          workspace_id?: string;
-          pipeline_id?: string;
-          stage_id?: string;
-          title?: string;
-          amount?: number;
-          currency?: string;
-          probability?: number;
-          contact_id?: string | null;
-          company_id?: string | null;
-          owner_id?: string;
-          expected_close_date?: string | null;
-          actual_close_date?: string | null;
-          status?: Database["public"]["Enums"]["deal_status"];
-          lost_reason?: string | null;
-          tags?: string[];
-          custom_fields?: Json;
-          created_by?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          deleted_at?: string | null;
-        };
-      };
-      
-      /** Продукти, що прив'язані до угоди */
-      deal_products: {
-        Row: {
-          id: string;
-          deal_id: string;
-          product_id: string | null;
-          name: string;
-          quantity: number;
-          price: number;
-          discount: number;
-          total: number;
-          notes: string | null;
-        };
-        Insert: {
-          id?: string;
-          deal_id: string;
-          product_id?: string | null;
-          name: string;
-          quantity?: number;
-          price: number;
-          discount?: number;
-          notes?: string | null;
-        };
-        Update: {
-          id?: string;
-          deal_id?: string;
-          product_id?: string | null;
-          name?: string;
-          quantity?: number;
-          price?: number;
-          discount?: number;
-          notes?: string | null;
-        };
-      };
-
-      // ======================================================
-      // Секція: Продукти та Послуги
-      // ======================================================
-
-      /** Продукти та послуги */
-      products: {
-        Row: {
-          id: string;
-          workspace_id: string;
-          category_id: string | null;
-          name: string;
-          sku: string | null;
-          description: string | null;
-          price: number;
-          currency: string;
-          unit: string;
-          is_active: boolean;
-          created_at: string;
-          updated_at: string;
-          deleted_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          workspace_id: string;
-          category_id?: string | null;
-          name: string;
-          sku?: string | null;
-          description?: string | null;
-          price: number;
-          currency?: string;
-          unit?: string;
-          is_active?: boolean;
-          created_at?: string;
-          updated_at?: string;
-          deleted_at?: string | null;
-        };
-        Update: {
-          id?: string;
-          workspace_id?: string;
-          category_id?: string | null;
-          name?: string;
-          sku?: string | null;
-          description?: string | null;
-          price?: number;
-          currency?: string;
-          unit?: string;
-          is_active?: boolean;
-          created_at?: string;
-          updated_at?: string;
-          deleted_at?: string | null;
-        };
-      };
-
-      // ======================================================
-      // Секція: Задачі та Активності
-      // ======================================================
-
-      /** Задачі */
-      tasks: {
-        Row: {
-          id: string;
-          workspace_id: string;
-          title: string;
-          description: string | null;
-          task_type: Database["public"]["Enums"]["task_type"];
-          created_by: string;
-          assigned_to: string;
-          status: Database["public"]["Enums"]["task_status"];
-          priority: Database["public"]["Enums"]["task_priority"];
-          due_date: string;
-          completed_at: string | null;
-          reminders: Json;
-          contact_id: string | null;
-          deal_id: string | null;
-          result: string | null;
-          created_at: string;
-          updated_at: string;
-          deleted_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          workspace_id: string;
-          title: string;
-          description?: string | null;
-          task_type: Database["public"]["Enums"]["task_type"];
-          created_by: string;
-          assigned_to: string;
-          status?: Database["public"]["Enums"]["task_status"];
-          priority?: Database["public"]["Enums"]["task_priority"];
-          due_date: string;
-          completed_at?: string | null;
-          reminders?: Json;
-          contact_id?: string | null;
-          deal_id?: string | null;
-          result?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          deleted_at?: string | null;
-        };
-        Update: {
-          id?: string;
-          workspace_id?: string;
-          title?: string;
-          description?: string | null;
-          task_type?: Database["public"]["Enums"]["task_type"];
-          created_by?: string;
-          assigned_to?: string;
-          status?: Database["public"]["Enums"]["task_status"];
-          priority?: Database["public"]["Enums"]["task_priority"];
-          due_date?: string;
-          completed_at?: string | null;
-          reminders?: Json;
-          contact_id?: string | null;
-          deal_id?: string | null;
-          result?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          deleted_at?: string | null;
-        };
-      };
-      
-      /** Стрічка активностей (timeline) */
       activities: {
         Row: {
-          id: string;
-          workspace_id: string;
-          activity_type: Database["public"]["Enums"]["activity_type"];
-          content: string | null;
-          metadata: Json;
-          contact_id: string | null;
-          deal_id: string | null;
-          company_id: string | null;
-          task_id: string | null;
-          user_id: string;
-          created_at: string;
-        };
+          activity_type: Database["public"]["Enums"]["activity_type"]
+          company_id: string | null
+          contact_id: string | null
+          content: string | null
+          created_at: string
+          deal_id: string | null
+          id: string
+          metadata: Json | null
+          task_id: string | null
+          user_id: string
+          workspace_id: string
+        }
         Insert: {
-          id?: string;
-          workspace_id: string;
-          activity_type: Database["public"]["Enums"]["activity_type"];
-          content?: string | null;
-          metadata?: Json;
-          contact_id?: string | null;
-          deal_id?: string | null;
-          company_id?: string | null;
-          task_id?: string | null;
-          user_id: string;
-          created_at?: string;
-        };
+          activity_type: Database["public"]["Enums"]["activity_type"]
+          company_id?: string | null
+          contact_id?: string | null
+          content?: string | null
+          created_at?: string
+          deal_id?: string | null
+          id?: string
+          metadata?: Json | null
+          task_id?: string | null
+          user_id: string
+          workspace_id: string
+        }
         Update: {
-          id?: string;
-          workspace_id?: string;
-          activity_type?: Database["public"]["Enums"]["activity_type"];
-          content?: string | null;
-          metadata?: Json;
-          contact_id?: string | null;
-          deal_id?: string | null;
-          company_id?: string | null;
-          task_id?: string | null;
-          user_id?: string;
-          created_at?: string;
-        };
-      };
-
-      // ======================================================
-      // Секція: Файли та Сповіщення
-      // ======================================================
-
-      /** Сповіщення для користувачів */
-      notifications: {
+          activity_type?: Database["public"]["Enums"]["activity_type"]
+          company_id?: string | null
+          contact_id?: string | null
+          content?: string | null
+          created_at?: string
+          deal_id?: string | null
+          id?: string
+          metadata?: Json | null
+          task_id?: string | null
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
         Row: {
-          id: string;
-          workspace_id: string;
-          user_id: string;
-          type: string;
-          title: string;
-          message: string | null;
-          link: string | null;
-          is_read: boolean;
-          read_at: string | null;
-          created_at: string;
-        };
+          address: Json | null
+          created_at: string
+          created_by: string | null
+          custom_fields: Json | null
+          deleted_at: string | null
+          edrpou: string | null
+          email: string | null
+          id: string
+          legal_name: string | null
+          name: string
+          owner_id: string | null
+          phone: string | null
+          source: string | null
+          status: Database["public"]["Enums"]["company_status"] | null
+          tags: string[] | null
+          updated_at: string
+          website: string | null
+          workspace_id: string
+        }
         Insert: {
-          id?: string;
-          workspace_id: string;
-          user_id: string;
-          type: string;
-          title: string;
-          message?: string | null;
-          link?: string | null;
-          is_read?: boolean;
-          read_at?: string | null;
-          created_at?: string;
-        };
+          address?: Json | null
+          created_at?: string
+          created_by?: string | null
+          custom_fields?: Json | null
+          deleted_at?: string | null
+          edrpou?: string | null
+          email?: string | null
+          id?: string
+          legal_name?: string | null
+          name: string
+          owner_id?: string | null
+          phone?: string | null
+          source?: string | null
+          status?: Database["public"]["Enums"]["company_status"] | null
+          tags?: string[] | null
+          updated_at?: string
+          website?: string | null
+          workspace_id: string
+        }
         Update: {
-          id?: string;
-          workspace_id?: string;
-          user_id?: string;
-          type?: string;
-          title?: string;
-          message?: string | null;
-          link?: string | null;
-          is_read?: boolean;
-          read_at?: string | null;
-          created_at?: string;
-        };
-      };
-      
-      /** Файли та вкладення */
-      files: {
+          address?: Json | null
+          created_at?: string
+          created_by?: string | null
+          custom_fields?: Json | null
+          deleted_at?: string | null
+          edrpou?: string | null
+          email?: string | null
+          id?: string
+          legal_name?: string | null
+          name?: string
+          owner_id?: string | null
+          phone?: string | null
+          source?: string | null
+          status?: Database["public"]["Enums"]["company_status"] | null
+          tags?: string[] | null
+          updated_at?: string
+          website?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "companies_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contacts: {
         Row: {
-          id: string;
-          workspace_id: string;
-          name: string;
-          original_name: string;
-          size_bytes: number;
-          mime_type: string;
-          storage_path: string;
-          contact_id: string | null;
-          deal_id: string | null;
-          company_id: string | null;
-          uploaded_by: string;
-          uploaded_at: string;
-          deleted_at: string | null;
-        };
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          custom_fields: Json | null
+          deleted_at: string | null
+          emails: Json | null
+          first_name: string
+          full_name: string | null
+          id: string
+          last_name: string
+          middle_name: string | null
+          owner_id: string | null
+          phones: Json | null
+          position: string | null
+          source: string | null
+          status: Database["public"]["Enums"]["contact_status"] | null
+          tags: string[] | null
+          updated_at: string
+          workspace_id: string
+        }
         Insert: {
-          id?: string;
-          workspace_id: string;
-          name: string;
-          original_name: string;
-          size_bytes: number;
-          mime_type: string;
-          storage_path: string;
-          contact_id?: string | null;
-          deal_id?: string | null;
-          company_id?: string | null;
-          uploaded_by: string;
-          uploaded_at?: string;
-          deleted_at?: string | null;
-        };
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          custom_fields?: Json | null
+          deleted_at?: string | null
+          emails?: Json | null
+          first_name: string
+          full_name?: string | null
+          id?: string
+          last_name: string
+          middle_name?: string | null
+          owner_id?: string | null
+          phones?: Json | null
+          position?: string | null
+          source?: string | null
+          status?: Database["public"]["Enums"]["contact_status"] | null
+          tags?: string[] | null
+          updated_at?: string
+          workspace_id: string
+        }
         Update: {
-          id?: string;
-          workspace_id?: string;
-          name?: string;
-          original_name?: string;
-          size_bytes?: number;
-          mime_type?: string;
-          storage_path?: string;
-          contact_id?: string | null;
-          deal_id?: string | null;
-          company_id?: string | null;
-          uploaded_by?: string;
-          uploaded_at?: string;
-          deleted_at?: string | null;
-        };
-      };
-
-      // ======================================================
-      // Додані відсутні таблиці
-      // ======================================================
-      
-      /** Історія платежів */
-      payments: {
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          custom_fields?: Json | null
+          deleted_at?: string | null
+          emails?: Json | null
+          first_name?: string
+          full_name?: string | null
+          id?: string
+          last_name?: string
+          middle_name?: string | null
+          owner_id?: string | null
+          phones?: Json | null
+          position?: string | null
+          source?: string | null
+          status?: Database["public"]["Enums"]["contact_status"] | null
+          tags?: string[] | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_products: {
         Row: {
-          id: string;
-          subscription_id: string;
-          workspace_id: string;
-          amount: number;
-          currency: string;
-          status: Database["public"]["Enums"]["payment_status"];
-          payment_provider: string;
-          external_payment_id: string | null;
-          invoice_url: string | null;
-          created_at: string;
-          completed_at: string | null;
-        };
+          deal_id: string
+          discount: number | null
+          id: string
+          name: string
+          notes: string | null
+          price: number
+          product_id: string | null
+          quantity: number
+          total: number | null
+        }
         Insert: {
-          id?: string;
-          subscription_id: string;
-          workspace_id: string;
-          amount: number;
-          currency?: string;
-          status?: Database["public"]["Enums"]["payment_status"];
-          payment_provider: string;
-          external_payment_id?: string | null;
-          invoice_url?: string | null;
-          created_at?: string;
-          completed_at?: string | null;
-        };
+          deal_id: string
+          discount?: number | null
+          id?: string
+          name: string
+          notes?: string | null
+          price: number
+          product_id?: string | null
+          quantity?: number
+          total?: number | null
+        }
         Update: {
-          id?: string;
-          subscription_id?: string;
-          workspace_id?: string;
-          amount?: number;
-          currency?: string;
-          status?: Database["public"]["Enums"]["payment_status"];
-          payment_provider?: string;
-          external_payment_id?: string | null;
-          invoice_url?: string | null;
-          created_at?: string;
-          completed_at?: string | null;
-        };
-      };
-      
-      /** Історія змін етапів угод (для аналітики) */
+          deal_id?: string
+          discount?: number | null
+          id?: string
+          name?: string
+          notes?: string | null
+          price?: number
+          product_id?: string | null
+          quantity?: number
+          total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_products_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deal_stage_history: {
         Row: {
-          id: string;
-          deal_id: string;
-          from_stage_id: string | null;
-          to_stage_id: string;
-          user_id: string;
-          duration_seconds: number | null;
-          created_at: string;
-        };
+          created_at: string
+          deal_id: string
+          duration_seconds: number | null
+          from_stage_id: string | null
+          id: string
+          to_stage_id: string
+          user_id: string
+        }
         Insert: {
-          id?: string;
-          deal_id: string;
-          from_stage_id?: string | null;
-          to_stage_id: string;
-          user_id: string;
-          duration_seconds?: number | null;
-          created_at?: string;
-        };
+          created_at?: string
+          deal_id: string
+          duration_seconds?: number | null
+          from_stage_id?: string | null
+          id?: string
+          to_stage_id: string
+          user_id: string
+        }
         Update: {
-          id?: string;
-          deal_id?: string;
-          from_stage_id?: string | null;
-          to_stage_id?: string;
-          user_id?: string;
-          duration_seconds?: number | null;
-          created_at?: string;
-        };
-      };
-      
-      /** Категорії продуктів (ієрархічна структура) */
-      product_categories: {
+          created_at?: string
+          deal_id?: string
+          duration_seconds?: number | null
+          from_stage_id?: string | null
+          id?: string
+          to_stage_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_stage_history_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deals: {
         Row: {
-          id: string;
-          workspace_id: string;
-          parent_id: string | null;
-          name: string;
-          order_index: number;
-          created_at: string;
-          updated_at: string;
-        };
+          actual_close_date: string | null
+          amount: number
+          company_id: string | null
+          contact_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          custom_fields: Json | null
+          deleted_at: string | null
+          expected_close_date: string | null
+          id: string
+          lost_reason: string | null
+          owner_id: string
+          pipeline_id: string
+          probability: number | null
+          stage_id: string
+          status: Database["public"]["Enums"]["deal_status"] | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
         Insert: {
-          id?: string;
-          workspace_id: string;
-          parent_id?: string | null;
-          name: string;
-          order_index?: number;
-          created_at?: string;
-          updated_at?: string;
-        };
+          actual_close_date?: string | null
+          amount?: number
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          custom_fields?: Json | null
+          deleted_at?: string | null
+          expected_close_date?: string | null
+          id?: string
+          lost_reason?: string | null
+          owner_id: string
+          pipeline_id: string
+          probability?: number | null
+          stage_id: string
+          status?: Database["public"]["Enums"]["deal_status"] | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          workspace_id: string
+        }
         Update: {
-          id?: string;
-          workspace_id?: string;
-          parent_id?: string | null;
-          name?: string;
-          order_index?: number;
-          created_at?: string;
-          updated_at?: string;
-        };
-      };
-      
-      /** Історія змін цін на продукти */
-      product_price_history: {
+          actual_close_date?: string | null
+          amount?: number
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          custom_fields?: Json | null
+          deleted_at?: string | null
+          expected_close_date?: string | null
+          id?: string
+          lost_reason?: string | null
+          owner_id?: string
+          pipeline_id?: string
+          probability?: number | null
+          stage_id?: string
+          status?: Database["public"]["Enums"]["deal_status"] | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "pipelines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      files: {
         Row: {
-          id: string;
-          product_id: string;
-          old_price: number | null;
-          new_price: number;
-          changed_by: string | null;
-          changed_at: string;
-        };
+          company_id: string | null
+          contact_id: string | null
+          deal_id: string | null
+          deleted_at: string | null
+          id: string
+          mime_type: string
+          name: string
+          original_name: string
+          size_bytes: number
+          storage_path: string
+          uploaded_at: string
+          uploaded_by: string
+          workspace_id: string
+        }
         Insert: {
-          id?: string;
-          product_id: string;
-          old_price?: number | null;
-          new_price: number;
-          changed_by?: string | null;
-          changed_at?: string;
-        };
+          company_id?: string | null
+          contact_id?: string | null
+          deal_id?: string | null
+          deleted_at?: string | null
+          id?: string
+          mime_type: string
+          name: string
+          original_name: string
+          size_bytes: number
+          storage_path: string
+          uploaded_at?: string
+          uploaded_by: string
+          workspace_id: string
+        }
         Update: {
-          id?: string;
-          product_id?: string;
-          old_price?: number | null;
-          new_price?: number;
-          changed_by?: string | null;
-          changed_at?: string;
-        };
-      };
-      
-      /** Налаштування інтеграцій (Нова Пошта, SMTP, SMS) */
+          company_id?: string | null
+          contact_id?: string | null
+          deal_id?: string | null
+          deleted_at?: string | null
+          id?: string
+          mime_type?: string
+          name?: string
+          original_name?: string
+          size_bytes?: number
+          storage_path?: string
+          uploaded_at?: string
+          uploaded_by?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "files_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "files_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "files_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "files_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integrations: {
         Row: {
-          workspace_id: string;
-          nova_poshta_api_key: string | null;
-          nova_poshta_settings: Json;
-          smtp_settings: Json;
-          sms_settings: Json;
-          updated_at: string;
-        };
+          nova_poshta_api_key: string | null
+          nova_poshta_settings: Json | null
+          sms_settings: Json | null
+          smtp_settings: Json | null
+          updated_at: string
+          workspace_id: string
+        }
         Insert: {
-          workspace_id: string;
-          nova_poshta_api_key?: string | null;
-          nova_poshta_settings?: Json;
-          smtp_settings?: Json;
-          sms_settings?: Json;
-          updated_at?: string;
-        };
+          nova_poshta_api_key?: string | null
+          nova_poshta_settings?: Json | null
+          sms_settings?: Json | null
+          smtp_settings?: Json | null
+          updated_at?: string
+          workspace_id: string
+        }
         Update: {
-          workspace_id?: string;
-          nova_poshta_api_key?: string | null;
-          nova_poshta_settings?: Json;
-          smtp_settings?: Json;
-          sms_settings?: Json;
-          updated_at?: string;
-        };
-      };
-    };
-    /**
-     * Перелічувані типи (ENUMs), що використовуються в базі даних.
-     */
+          nova_poshta_api_key?: string | null
+          nova_poshta_settings?: Json | null
+          sms_settings?: Json | null
+          smtp_settings?: Json | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integrations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean | null
+          link: string | null
+          message: string | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          link?: string | null
+          message?: string | null
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          link?: string | null
+          message?: string | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          completed_at: string | null
+          created_at: string
+          currency: string
+          external_payment_id: string | null
+          id: string
+          invoice_url: string | null
+          payment_provider: string
+          status: Database["public"]["Enums"]["payment_status"]
+          subscription_id: string
+          workspace_id: string
+        }
+        Insert: {
+          amount: number
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          external_payment_id?: string | null
+          id?: string
+          invoice_url?: string | null
+          payment_provider: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          subscription_id: string
+          workspace_id: string
+        }
+        Update: {
+          amount?: number
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          external_payment_id?: string | null
+          id?: string
+          invoice_url?: string | null
+          payment_provider?: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          subscription_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pipelines: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean | null
+          name: string
+          stages: Json
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          name: string
+          stages?: Json
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          stages?: Json
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pipelines_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          order_index: number | null
+          parent_id: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          order_index?: number | null
+          parent_id?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          order_index?: number | null
+          parent_id?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_categories_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_price_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          id: string
+          new_price: number
+          old_price: number | null
+          product_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_price: number
+          old_price?: number | null
+          product_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_price?: number
+          old_price?: number | null
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_price_history_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          currency: string
+          deleted_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          price: number
+          sku: string | null
+          unit: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          currency?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          price: number
+          sku?: string | null
+          unit?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          currency?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          price?: number
+          sku?: string | null
+          unit?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          billing_period: string | null
+          cancelled_at: string | null
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          enabled_modules: string[] | null
+          external_subscription_id: string | null
+          id: string
+          payment_provider: string | null
+          status: Database["public"]["Enums"]["subscription_status"]
+          tier: Database["public"]["Enums"]["subscription_tier"]
+          trial_ends_at: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          billing_period?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          enabled_modules?: string[] | null
+          external_subscription_id?: string | null
+          id?: string
+          payment_provider?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          tier?: Database["public"]["Enums"]["subscription_tier"]
+          trial_ends_at?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          billing_period?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          enabled_modules?: string[] | null
+          external_subscription_id?: string | null
+          id?: string
+          payment_provider?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          tier?: Database["public"]["Enums"]["subscription_tier"]
+          trial_ends_at?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          assigned_to: string
+          completed_at: string | null
+          contact_id: string | null
+          created_at: string
+          created_by: string
+          deal_id: string | null
+          deleted_at: string | null
+          description: string | null
+          due_date: string
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"] | null
+          reminders: Json | null
+          result: string | null
+          status: Database["public"]["Enums"]["task_status"] | null
+          task_type: Database["public"]["Enums"]["task_type"]
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          assigned_to: string
+          completed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by: string
+          deal_id?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          due_date: string
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"] | null
+          reminders?: Json | null
+          result?: string | null
+          status?: Database["public"]["Enums"]["task_status"] | null
+          task_type: Database["public"]["Enums"]["task_type"]
+          title: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          assigned_to?: string
+          completed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string
+          deal_id?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          due_date?: string
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"] | null
+          reminders?: Json | null
+          result?: string | null
+          status?: Database["public"]["Enums"]["task_status"] | null
+          task_type?: Database["public"]["Enums"]["task_type"]
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          role: Database["public"]["Enums"]["user_role"]
+          status: Database["public"]["Enums"]["invitation_status"]
+          token: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by: string
+          role?: Database["public"]["Enums"]["user_role"]
+          status?: Database["public"]["Enums"]["invitation_status"]
+          token: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          status?: Database["public"]["Enums"]["invitation_status"]
+          token?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_invitations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_quotas: {
+        Row: {
+          current_contacts: number
+          current_deals: number
+          current_storage_mb: number
+          current_users: number
+          max_contacts: number
+          max_deals: number
+          max_storage_mb: number
+          max_users: number
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          current_contacts?: number
+          current_deals?: number
+          current_storage_mb?: number
+          current_users?: number
+          max_contacts?: number
+          max_deals?: number
+          max_storage_mb?: number
+          max_users?: number
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          current_contacts?: number
+          current_deals?: number
+          current_storage_mb?: number
+          current_users?: number
+          max_contacts?: number
+          max_deals?: number
+          max_storage_mb?: number
+          max_users?: number
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_quotas_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_users: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          status: Database["public"]["Enums"]["workspace_user_status"]
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          status?: Database["public"]["Enums"]["workspace_user_status"]
+          updated_at?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          status?: Database["public"]["Enums"]["workspace_user_status"]
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_users_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspaces: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          name: string
+          owner_id: string
+          settings: Json | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          name: string
+          owner_id: string
+          settings?: Json | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          name?: string
+          owner_id?: string
+          settings?: Json | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      generate_invitation_token: { Args: never; Returns: string }
+      get_current_user_role: {
+        Args: { p_workspace_id?: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
+      get_current_workspace_id: { Args: never; Returns: string }
+    }
     Enums: {
-      user_role: "owner" | "admin" | "manager" | "user" | "guest";
-      workspace_user_status: "pending" | "active" | "suspended";
-      subscription_tier: "free" | "starter" | "pro" | "enterprise";
-      subscription_status: "trialing" | "active" | "past_due" | "cancelled";
-      contact_status: "new" | "qualified" | "customer" | "lost";
-      company_status: "lead" | "active" | "inactive";
-      deal_status: "open" | "won" | "lost" | "cancelled";
-      task_type: "call" | "meeting" | "email" | "todo";
-      task_status: "pending" | "in_progress" | "completed" | "cancelled";
-      task_priority: "low" | "medium" | "high";
       activity_type:
         | "note"
         | "call"
@@ -905,21 +1163,167 @@ export interface Database {
         | "status_change"
         | "file_upload"
         | "created"
-        | "updated";
-      payment_status: "pending" | "completed" | "failed" | "refunded";
-    };
-    /**
-     * Функції бази даних, доступні через API.
-     */
-    Functions: {
-      get_current_workspace_id: {
-        Args: Record<string, never>;
-        Returns: string;
-      };
-      get_current_user_role: {
-        Args: { p_workspace_id?: string };
-        Returns: Database["public"]["Enums"]["user_role"];
-      };
-    };
-  };
+        | "updated"
+      company_status: "lead" | "active" | "inactive"
+      contact_status: "new" | "qualified" | "customer" | "lost"
+      deal_status: "open" | "won" | "lost" | "cancelled"
+      invitation_status: "pending" | "accepted" | "expired" | "cancelled"
+      payment_status: "pending" | "completed" | "failed" | "refunded"
+      subscription_status: "trialing" | "active" | "past_due" | "cancelled"
+      subscription_tier: "free" | "starter" | "pro" | "enterprise"
+      task_priority: "low" | "medium" | "high"
+      task_status: "pending" | "in_progress" | "completed" | "cancelled"
+      task_type: "call" | "meeting" | "email" | "todo"
+      user_role: "owner" | "admin" | "manager" | "user" | "guest"
+      workspace_user_status: "pending" | "active" | "suspended"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
 }
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      activity_type: [
+        "note",
+        "call",
+        "email",
+        "status_change",
+        "file_upload",
+        "created",
+        "updated",
+      ],
+      company_status: ["lead", "active", "inactive"],
+      contact_status: ["new", "qualified", "customer", "lost"],
+      deal_status: ["open", "won", "lost", "cancelled"],
+      invitation_status: ["pending", "accepted", "expired", "cancelled"],
+      payment_status: ["pending", "completed", "failed", "refunded"],
+      subscription_status: ["trialing", "active", "past_due", "cancelled"],
+      subscription_tier: ["free", "starter", "pro", "enterprise"],
+      task_priority: ["low", "medium", "high"],
+      task_status: ["pending", "in_progress", "completed", "cancelled"],
+      task_type: ["call", "meeting", "email", "todo"],
+      user_role: ["owner", "admin", "manager", "user", "guest"],
+      workspace_user_status: ["pending", "active", "suspended"],
+    },
+  },
+} as const

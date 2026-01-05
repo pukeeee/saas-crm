@@ -1,13 +1,16 @@
-/**
- * Zod validation schemas for all database entities
- * These schemas are used for both API validation and TypeScript type inference
- */
-
 import { z } from "zod";
 
 // ============================================================================
 // ENUMS
 // ============================================================================
+
+export const InvitationStatusSchema = z.enum([
+  "pending",
+  "accepted",
+  "expired",
+  "cancelled",
+]);
+export type InvitationStatus = z.infer<typeof InvitationStatusSchema>;
 
 export const UserRoleSchema = z.enum([
   "owner",
@@ -173,15 +176,8 @@ export const WorkspaceUserSchema = z.object({
   user_id: UUIDSchema,
   role: UserRoleSchema,
   status: WorkspaceUserStatusSchema,
-  invited_by: UUIDSchema.nullable(),
-  invited_at: z.iso.datetime(),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
-});
-
-export const InviteUserSchema = z.object({
-  email: EmailSchema,
-  role: UserRoleSchema.default("user"),
 });
 
 export const UpdateUserRoleSchema = z.object({
@@ -189,7 +185,61 @@ export const UpdateUserRoleSchema = z.object({
 });
 
 export type WorkspaceUser = z.infer<typeof WorkspaceUserSchema>;
-export type InviteUser = z.infer<typeof InviteUserSchema>;
+
+// ============================================================================
+// WORKSPACE INVITATIONS
+// ============================================================================
+
+export const WorkspaceInvitationSchema = z.object({
+  id: UUIDSchema,
+  workspace_id: UUIDSchema,
+  email: EmailSchema,
+  role: UserRoleSchema,
+  token: z.string().length(64), // Токен тепер hex 64 символи
+  invited_by: UUIDSchema,
+  status: InvitationStatusSchema,
+  expires_at: z.coerce.date(),
+  accepted_at: z.coerce.date().nullable(),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date(),
+});
+
+// Схема для створення нового запрошення (для API)
+export const CreateWorkspaceInvitationSchema = z.object({
+  workspace_id: UUIDSchema,
+  email: EmailSchema,
+  role: UserRoleSchema.default("user"),
+});
+
+// Схема для прийняття запрошення
+export const AcceptInvitationSchema = z.object({
+  token: z.string().length(64, "Недійсний формат токена"),
+});
+
+// Схема для скасування/видалення запрошення
+export const CancelInvitationSchema = z.object({
+  invitation_id: UUIDSchema,
+});
+
+// Розширена схема для відображення в UI
+export const InvitationWithDetailsSchema = WorkspaceInvitationSchema.extend({
+  workspace: z.object({
+    name: z.string(),
+    slug: z.string(),
+  }),
+  inviter: z.object({
+    full_name: z.string().nullable(),
+    email: EmailSchema,
+  }),
+});
+
+export type WorkspaceInvitation = z.infer<typeof WorkspaceInvitationSchema>;
+export type CreateWorkspaceInvitation = z.infer<
+  typeof CreateWorkspaceInvitationSchema
+>;
+export type AcceptInvitation = z.infer<typeof AcceptInvitationSchema>;
+export type CancelInvitation = z.infer<typeof CancelInvitationSchema>;
+export type InvitationWithDetails = z.infer<typeof InvitationWithDetailsSchema>;
 
 // ============================================================================
 // SUBSCRIPTION & BILLING
@@ -200,7 +250,7 @@ export const SubscriptionSchema = z.object({
   workspace_id: UUIDSchema,
   tier: SubscriptionTierSchema,
   status: SubscriptionStatusSchema,
-  billing_period: z.enum(["monthly", "annual"]),
+  billing_period: z.enum(["monthly", "annual"]).nullable(),
   current_period_start: z.iso.datetime(),
   current_period_end: z.iso.datetime(),
   trial_ends_at: z.iso.datetime().nullable(),
@@ -234,7 +284,7 @@ export const PaymentSchema = z.object({
   status: PaymentStatusSchema,
   payment_provider: z.string(),
   external_payment_id: z.string().nullable(),
-  invoice_url: z.string().url().nullable(),
+  invoice_url: z.url().nullable(),
   created_at: z.iso.datetime(),
   completed_at: z.iso.datetime().nullable(),
 });

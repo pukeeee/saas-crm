@@ -115,6 +115,102 @@ export async function createContact(data: ContactInput) {
 }
 ```
 
+### Приклад: Керування Запрошеннями
+
+```typescript
+// app/actions/invitations.ts
+'use server'
+
+import { createServerClient } from '@/lib/supabase/server'
+import { z } from 'zod'
+import crypto from 'crypto';
+import { sendInvitationEmail } from '@/lib/email'; // Гіпотетичний сервіс
+
+// Схема для створення запрошення
+const createInvitationSchema = z.object({
+  email: z.string().email('Неправильний формат email'),
+  role: z.enum(['admin', 'manager', 'user', 'guest']),
+  workspace_id: z.string().uuid(),
+});
+
+// Server Action для створення та відправки запрошення
+export async function createInvitation(input: z.infer<typeof createInvitationSchema>) {
+  const supabase = createServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Неавторизований доступ');
+
+  // TODO: Додати перевірку, чи має користувач право запрошувати інших
+
+  const { email, role, workspace_id } = createInvitationSchema.parse(input);
+  
+  // 1. Генеруємо унікальний токен
+  const token = crypto.randomBytes(32).toString('hex');
+  const expires_at = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 годин
+
+  // 2. Зберігаємо запрошення в базі даних
+  const { data, error } = await supabase.from('workspace_invitations').insert({
+    workspace_id,
+    email,
+    role,
+    token,
+    expires_at,
+    invited_by: user.id,
+    status: 'pending',
+  }).select().single();
+
+  if (error) {
+    console.error('Помилка створення запрошення:', error);
+    return { success: false, error: 'Не вдалося створити запрошення.' };
+  }
+
+  // 3. Відправляємо email з посиланням
+  const invitationLink = `${process.env.NEXT_PUBLIC_APP_URL}/accept-invitation?token=${token}`;
+  await sendInvitationEmail(email, invitationLink);
+  
+  revalidatePath(`/dashboard/settings/users`);
+  return { success: true, data };
+}
+
+// Server Action для прийняття запрошення
+export async function acceptInvitation(token: string) {
+  const supabase = createServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Для прийняття запрошення потрібно увійти в систему.');
+
+  // 1. Знаходимо запрошення за токеном
+  const { data: invitation, error } = await supabase
+    .from('workspace_invitations')
+    .select('*')
+    .eq('token', token)
+    .single();
+
+  if (error || !invitation || new Date(invitation.expires_at) < new Date() || invitation.status !== 'pending') {
+    return { success: false, error: 'Запрошення недійсне, застаріле або вже використане.' };
+  }
+
+  // 2. Додаємо користувача до організації
+  const { error: addUserError } = await supabase.from('workspace_users').insert({
+    workspace_id: invitation.workspace_id,
+    user_id: user.id,
+    role: invitation.role,
+    status: 'active',
+  });
+
+  if (addUserError) {
+    console.error('Помилка додавання користувача до організації:', addUserError);
+    return { success: false, error: 'Не вдалося приєднатися до організації.' };
+  }
+  
+  // 3. Оновлюємо статус запрошення
+  await supabase.from('workspace_invitations')
+    .update({ status: 'accepted', accepted_at: new Date().toISOString() })
+    .eq('id', invitation.id);
+
+  revalidatePath('/dashboard');
+  return { success: true };
+}
+```
+
 ## 7.3. Зовнішній API: API Routes для Вебхуків
 
 Використовуються для прийому асинхронних сповіщень від зовнішніх систем.

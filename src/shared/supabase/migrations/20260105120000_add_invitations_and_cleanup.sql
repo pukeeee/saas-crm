@@ -37,11 +37,13 @@ CREATE TABLE workspace_invitations (
   
   -- Метадані
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
-  -- Запобігаємо дублюванню активних запрошень на один email в межах одного воркспейсу
-  CONSTRAINT unique_pending_invitation UNIQUE(workspace_id, email) WHERE (status = 'pending')
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Запобігаємо дублюванню активних запрошень на один email в межах одного воркспейсу
+CREATE UNIQUE INDEX unique_pending_invitation
+ON workspace_invitations(workspace_id, email)
+WHERE (status = 'pending');
 
 -- Тригер для оновлення updated_at
 CREATE TRIGGER update_workspace_invitations_updated_at BEFORE UPDATE ON workspace_invitations

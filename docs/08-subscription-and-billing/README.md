@@ -39,67 +39,44 @@
 
 ## 8.3. Керування Лімітами (Quota Management)
 
-Система автоматично відстежує використання ресурсів для кожного робочого простору для забезпечення дотримання лімітів тарифного плану.
+Система автоматично відстежує використання ресурсів для кожного робочого простору. Це реалізовано за допомогою гібридного підходу, що поєднує ефективність бази даних та гнучкість бізнес-логіки на рівні додатку.
 
-**Технічна реалізація:**
+### Технічна реалізація
 
-1.  **Таблиця для відстеження квот:** Створюється таблиця `workspace_quotas`, де зберігаються поточні ліміти та використання для кожної організації.
-    ```sql
-    CREATE TABLE workspace_quotas (
-      workspace_id UUID PRIMARY KEY REFERENCES workspaces(id),
-      max_users INT NOT NULL DEFAULT 2,
-      max_contacts INT NOT NULL DEFAULT 100,
-      -- Поточне використання
-      current_users INT DEFAULT 0,
-      current_contacts INT DEFAULT 0,
-      -- ... інші лічильники
-      updated_at TIMESTAMPTZ DEFAULT NOW()
-    );
-    ```
+1.  **Таблиця `workspace_quotas`:** Це центральна таблиця, де для кожної організації зберігаються як максимальні ліміти тарифу (`max_contacts`, `max_users`), так і поточне використання (`current_contacts`, `current_users`).
 
-2.  **Автоматичне оновлення лічильників:** За допомогою тригерів у базі даних, при додаванні або видаленні записів (контактів, угод), лічильники в `workspace_quotas` автоматично оновлюються.
-    ```sql
-    CREATE OR REPLACE FUNCTION update_workspace_usage()
-    RETURNS TRIGGER AS $$
-    BEGIN
-      IF TG_TABLE_NAME = 'contacts' THEN
-        IF TG_OP = 'INSERT' THEN
-          UPDATE workspace_quotas SET current_contacts = current_contacts + 1 WHERE workspace_id = NEW.workspace_id;
-        ELSIF TG_OP = 'DELETE' THEN
-          UPDATE workspace_quotas SET current_contacts = current_contacts - 1 WHERE workspace_id = OLD.workspace_id;
-        END IF;
-      END IF;
-      -- ... аналогічно для інших сутностей
-      RETURN NEW;
-    END;
-    $$ LANGUAGE plpgsql;
-    ```
+2.  **Рівень даних: Автоматичне оновлення лічильників (Тригери)**
+    Для максимальної продуктивності підрахунок поточного використання ресурсів виконується на рівні бази даних. Спеціальні тригери (`update_workspace_usage`) автоматично збільшують або зменшують лічильники (`current_contacts`, `current_deals` тощо) при кожній операції `INSERT` або `DELETE` у відповідних таблицях. Це дозволяє уникнути повільних запитів `COUNT(*)` при кожній перевірці.
 
-3.  **Перевірка квот на сервері:** Перед створенням нового запису Server Action перевіряє, чи не перевищено ліміт.
+3.  **Рівень додатку: Перевірка квот перед створенням (Сервісний шар)**
+    Уся бізнес-логіка перевірки лімітів інкапсульована в `quota.service.ts`. Перед створенням будь-якої нової сутності, що підлягає квотуванню, серверна дія (Server Action) **обов'язково** викликає метод `canCreateEntity` з цього сервісу.
+
     ```typescript
-    // Функція для перевірки квоти
-    async function checkQuota(workspaceId: string, quotaType: 'contacts' | 'users') {
-      const supabase = createServerClient();
-      const { data: quota } = await supabase
-        .from('workspace_quotas')
-        .select('*')
-        .eq('workspace_id', workspaceId)
-        .single();
+    // app/actions/contacts.ts (спрощений приклад)
+    import { canCreateEntity } from "@/shared/lib/services/quota.service";
+    import { createContactInDb } from "@/shared/lib/repositories/contact.repository";
+
+    export async function createContact(data: ContactInput) {
+      const workspaceId = await getCurrentWorkspaceId(); // Отримуємо ID воркспейсу
       
-      if (!quota) return false;
-      
-      const limits = {
-        contacts: quota.current_contacts >= quota.max_contacts,
-        users: quota.current_users >= quota.max_users
-      };
-      
-      if (limits[quotaType]) {
-        // Якщо ліміт перевищено, повертаємо помилку
-        return false;
+      // 1. Перевірка квоти через сервіс
+      const canCreate = await canCreateEntity(workspaceId, "contacts");
+      if (!canCreate) {
+        return { success: false, error: "Досягнуто ліміт контактів для вашого тарифу." };
       }
-      return true;
+      
+      // 2. Якщо перевірка успішна, створюємо запис через репозиторій
+      const contact = await createContactInDb(workspaceId, data);
+      
+      // Тригер в БД автоматично оновить лічильник current_contacts
+      
+      return { success: true, data: contact };
     }
     ```
+    `canCreateEntity` всередині себе викликає `quota.repository.ts` для отримання актуальних даних з `workspace_quotas` і порівнює `current_` з `max_`.
+
+4.  **Оновлення максимальних лімітів (RLS Політика)**
+    Коли користувач змінює тарифний план (наприклад, через `billing.service.ts`), системі потрібно оновити максимальні ліміти (`max_contacts`, `max_users`) в таблиці `workspace_quotas`. Для цього створена спеціальна політика безпеки RLS, яка дозволяє **лише адміністраторам або власнику** організації виконувати операцію `UPDATE` над записами в цій таблиці. Це гарантує, що звичайний користувач не може змінити свої ліміти, а система білінгу може це робити безпечно.
 
 ## 8.4. Логіка Оновлення та Пониження Тарифу
 
@@ -122,7 +99,7 @@ CREATE TABLE subscriptions (
   enabled_modules TEXT[] DEFAULT '{}', -- Масив активованих платних модулів, напр: ['inventory', 'api_access']
   
   -- Інформація про білінг
-  billing_period TEXT DEFAULT 'monthly', -- 'monthly', 'annual'
+  billing_period TEXT, -- 'monthly', 'annual'. Може бути NULL, напр. для тарифу "Free"
   current_period_start TIMESTAMPTZ NOT NULL,
   current_period_end TIMESTAMPTZ NOT NULL,
   cancelled_at TIMESTAMPTZ,
