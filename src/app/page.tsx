@@ -18,6 +18,14 @@ export default function Page() {
             Перейти в дашборд
           </Link>
         </p>
+        <p className="mb-8">
+          <Link
+            href="/landing"
+            className=" text-primary hover:underline text-lg"
+          >
+            Перейти на лендінг
+          </Link>
+        </p>
       </main>
     </div>
   );
