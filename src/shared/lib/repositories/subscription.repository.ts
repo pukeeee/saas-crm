@@ -5,20 +5,23 @@
 
 import { createServerClient } from "@/shared/supabase/server";
 import type { Database } from "@/shared/lib/types/database";
-import type { SubscriptionTier } from "@/shared/lib/validations/schemas";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 type Subscription = Database["public"]["Tables"]["subscriptions"]["Row"];
-type SubscriptionUpdate = Database["public"]["Tables"]["subscriptions"]["Update"];
+type SubscriptionUpdate =
+  Database["public"]["Tables"]["subscriptions"]["Update"];
 
 /**
  * Отримує дані про підписку за ID робочого простору.
  * @param workspaceId - ID робочого простору.
+ * @param supabaseClient - опціональний екземпляр Supabase клієнта.
  * @returns Об'єкт підписки або null.
  */
 export async function getByWorkspaceId(
   workspaceId: string,
+  supabaseClient?: SupabaseClient<Database>
 ): Promise<Subscription | null> {
-  const supabase = await createServerClient();
+  const supabase = supabaseClient ?? (await createServerClient());
   const { data, error } = await supabase
     .from("subscriptions")
     .select("*")
@@ -43,13 +46,15 @@ export async function getByWorkspaceId(
  * Оновлює підписку.
  * @param workspaceId - ID робочого простору.
  * @param updates - Об'єкт з полями для оновлення.
+ * @param supabaseClient - опціональний екземпляр Supabase клієнта.
  * @returns Оновлений об'єкт підписки.
  */
 export async function update(
   workspaceId: string,
   updates: SubscriptionUpdate,
+  supabaseClient?: SupabaseClient<Database>
 ): Promise<Subscription> {
-  const supabase = await createServerClient();
+  const supabase = supabaseClient ?? (await createServerClient());
   const { data, error } = await supabase
     .from("subscriptions")
     .update(updates)
