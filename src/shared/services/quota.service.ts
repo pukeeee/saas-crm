@@ -3,7 +3,7 @@
  * Містить бізнес-логіку, пов'язану з квотами.
  */
 
-import * as quotaRepository from "@/shared/lib/repositories/quota.repository";
+import * as quotaRepository from "@/shared/repositories/quota.repository";
 import { canAddEntity as canAddEntityHelper } from "@/shared/lib/utils/helpers";
 import type { QuotaEntity } from "@/shared/lib/config/billing";
 

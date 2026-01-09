@@ -14,7 +14,7 @@ import {
   getByPipelineAndStage,
   moveToStage,
   countByWorkspaceId,
-} from "@/shared/lib/repositories/deal.repository";
+} from "@/shared/repositories/deal.repository";
 import { createTestWorkspace } from "../../lib/helpers/db-setup";
 import type { Database } from "@/shared/lib/types/database";
 

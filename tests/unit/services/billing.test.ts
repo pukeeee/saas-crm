@@ -11,9 +11,9 @@ import {
   upgradeSubscription,
   downgradeSubscription,
   cancelSubscription,
-} from "@/shared/lib/services/billing.service";
-import * as subscriptionRepository from "@/shared/lib/repositories/subscription.repository";
-import * as quotaRepository from "@/shared/lib/repositories/quota.repository";
+} from "@/shared/services/billing.service";
+import * as subscriptionRepository from "@/shared/repositories/subscription.repository";
+import * as quotaRepository from "@/shared/repositories/quota.repository";
 import {
   mockFreeSubscription,
   mockStarterSubscription,
@@ -23,8 +23,8 @@ import {
 import { mockWorkspaceId } from "../../lib/fixtures/workspaces";
 
 // Повністю мокуємо модулі репозиторіїв, щоб замінити їх реалізації на шпигунів.
-vi.mock("@/shared/lib/repositories/subscription.repository");
-vi.mock("@/shared/lib/repositories/quota.repository");
+vi.mock("@/shared/repositories/subscription.repository");
+vi.mock("@/shared/repositories/quota.repository");
 
 /**
  * @group Unit-тести сервісу білінгу

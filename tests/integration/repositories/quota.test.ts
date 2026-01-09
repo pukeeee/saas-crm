@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import {
   getQuotasByWorkspaceId,
   updateQuotas,
-} from "@/shared/lib/repositories/quota.repository";
+} from "@/shared/repositories/quota.repository";
 import {
   createTestWorkspace,
   createTestSupabaseClient,
@@ -77,7 +77,7 @@ describe.sequential("quota.repository (integration)", () => {
     it("викидає помилку при невалідному UUID", async () => {
       // Assert: Очікуємо помилку від бази даних.
       await expect(
-        getQuotasByWorkspaceId("invalid-uuid", testClient)
+        getQuotasByWorkspaceId("invalid-uuid", testClient),
       ).rejects.toThrow();
     });
   });
@@ -160,7 +160,7 @@ describe.sequential("quota.repository (integration)", () => {
 
       // Assert: Очікуємо помилку, оскільки запис для оновлення не буде знайдено.
       await expect(
-        updateQuotas(nonExistentId, { max_users: 5 }, testClient)
+        updateQuotas(nonExistentId, { max_users: 5 }, testClient),
       ).rejects.toThrow();
     });
   });

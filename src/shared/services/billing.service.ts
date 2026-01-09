@@ -8,8 +8,8 @@
 import type { Database } from "@/shared/lib/types/database";
 import type { SubscriptionTier } from "@/shared/lib/validations/schemas";
 import { WORKSPACE_TIER_LIMITS } from "@/shared/lib/config/billing";
-import * as subscriptionRepository from "@/shared/lib/repositories/subscription.repository";
-import * as quotaRepository from "@/shared/lib/repositories/quota.repository";
+import * as subscriptionRepository from "@/shared/repositories/subscription.repository";
+import * as quotaRepository from "@/shared/repositories/quota.repository";
 
 /**
  * Отримує дані про підписку для вказаного робочого простору.

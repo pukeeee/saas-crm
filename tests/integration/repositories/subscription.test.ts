@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import {
   getByWorkspaceId,
   update,
-} from "@/shared/lib/repositories/subscription.repository";
+} from "@/shared/repositories/subscription.repository";
 import {
   createTestWorkspace,
   createTestSupabaseClient,

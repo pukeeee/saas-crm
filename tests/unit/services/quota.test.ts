@@ -5,13 +5,13 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { canCreateEntity } from "@/shared/lib/services/quota.service";
-import * as quotaRepository from "@/shared/lib/repositories/quota.repository";
+import { canCreateEntity } from "@/shared/services/quota.service";
+import * as quotaRepository from "@/shared/repositories/quota.repository";
 import { mockFreeQuota, mockQuotaAtLimit } from "../../lib/fixtures/billing";
 import { mockWorkspaceId } from "../../lib/fixtures/workspaces";
 
 // Повністю мокуємо модуль репозиторію, щоб контролювати його поведінку в тестах.
-vi.mock("@/shared/lib/repositories/quota.repository");
+vi.mock("@/shared/repositories/quota.repository");
 
 /**
  * @group Unit-тести сервісу квот
@@ -38,7 +38,7 @@ describe("quota.service", () => {
     it("повертає true, коли є вільні місця для контактів", async () => {
       // Arrange: Налаштовуємо мок репозиторію, щоб він повернув квоти, де є вільне місце.
       vi.mocked(quotaRepository.getQuotasByWorkspaceId).mockResolvedValue(
-        mockFreeQuota
+        mockFreeQuota,
       );
 
       // Act: Викликаємо функцію для перевірки можливості створення контакту.
@@ -47,7 +47,7 @@ describe("quota.service", () => {
       // Assert: Перевіряємо, що результат `true` і репозиторій був викликаний з правильним ID.
       expect(result).toBe(true);
       expect(quotaRepository.getQuotasByWorkspaceId).toHaveBeenCalledWith(
-        mockWorkspaceId
+        mockWorkspaceId,
       );
     });
 
@@ -56,7 +56,7 @@ describe("quota.service", () => {
      */
     it("повертає true, коли є вільні місця для угод", async () => {
       vi.mocked(quotaRepository.getQuotasByWorkspaceId).mockResolvedValue(
-        mockFreeQuota
+        mockFreeQuota,
       );
 
       const result = await canCreateEntity(mockWorkspaceId, "deals");
@@ -69,7 +69,7 @@ describe("quota.service", () => {
      */
     it("повертає true, коли є вільні місця для користувачів", async () => {
       vi.mocked(quotaRepository.getQuotasByWorkspaceId).mockResolvedValue(
-        mockFreeQuota
+        mockFreeQuota,
       );
 
       const result = await canCreateEntity(mockWorkspaceId, "users");
@@ -83,7 +83,7 @@ describe("quota.service", () => {
     it("повертає false, коли ліміт контактів досягнуто", async () => {
       // Arrange: Використовуємо фікстуру, де ліміти вичерпано.
       vi.mocked(quotaRepository.getQuotasByWorkspaceId).mockResolvedValue(
-        mockQuotaAtLimit
+        mockQuotaAtLimit,
       );
 
       const result = await canCreateEntity(mockWorkspaceId, "contacts");
@@ -97,7 +97,7 @@ describe("quota.service", () => {
      */
     it("повертає false, коли ліміт угод досягнуто", async () => {
       vi.mocked(quotaRepository.getQuotasByWorkspaceId).mockResolvedValue(
-        mockQuotaAtLimit
+        mockQuotaAtLimit,
       );
 
       const result = await canCreateEntity(mockWorkspaceId, "deals");
@@ -110,7 +110,7 @@ describe("quota.service", () => {
      */
     it("повертає false, коли ліміт користувачів досягнуто", async () => {
       vi.mocked(quotaRepository.getQuotasByWorkspaceId).mockResolvedValue(
-        mockQuotaAtLimit
+        mockQuotaAtLimit,
       );
 
       const result = await canCreateEntity(mockWorkspaceId, "users");
@@ -138,7 +138,7 @@ describe("quota.service", () => {
     it("повертає false при помилці отримання квот", async () => {
       // Arrange: Симулюємо помилку від репозиторію.
       vi.mocked(quotaRepository.getQuotasByWorkspaceId).mockRejectedValue(
-        new Error("Database error")
+        new Error("Database error"),
       );
 
       const result = await canCreateEntity(mockWorkspaceId, "contacts");
@@ -151,7 +151,7 @@ describe("quota.service", () => {
      */
     it("повертає false для невідомого типу сутності", async () => {
       vi.mocked(quotaRepository.getQuotasByWorkspaceId).mockResolvedValue(
-        mockFreeQuota
+        mockFreeQuota,
       );
 
       // @ts-expect-error Тестуємо невалідний тип, щоб перевірити обробку помилок.
