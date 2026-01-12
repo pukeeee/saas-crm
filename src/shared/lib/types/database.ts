@@ -1151,7 +1151,7 @@ export type Database = {
       generate_invitation_token: { Args: never; Returns: string }
       get_workspace_role: {
         Args: { p_user_id: string; p_workspace_id: string }
-        Returns: Database["public"]["Enums"]["user_role"]
+        Returns: string
       }
       is_workspace_member: {
         Args: { p_user_id: string; p_workspace_id: string }

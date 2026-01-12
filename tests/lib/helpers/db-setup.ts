@@ -304,3 +304,63 @@ export async function createTestDeal(
   if (error) throw error;
   return deal;
 }
+
+/**
+ * Створює тестового користувача з вказаною роллю в існуючому воркспейсі.
+ * @param workspaceId - ID існуючого воркспейсу.
+ * @param role - Роль нового користувача ('manager' або 'user').
+ * @param identifier - Унікальний ідентифікатор для email.
+ */
+export async function createTestUser(
+  workspaceId: string,
+  role: "manager" | "user",
+  identifier: string,
+) {
+  const supabase = createTestSupabaseClient();
+  const email = `test-user-${identifier}-${Date.now()}@example.com`;
+  const password = "test-password-123";
+
+  // 1. Створюємо auth.user
+  const { data: user, error: createError } = await supabase.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+  });
+
+  if (createError) {
+    if (createError.message.includes("User already registered")) {
+      // На випадок, якщо cleanup не спрацював, знаходимо існуючого
+      const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
+      if (listError) throw listError;
+      const existingUser = users.find(u => u.email === email);
+      if (!existingUser) throw new Error(`User ${email} reported as existing, but not found.`);
+      return { userId: existingUser.id, email, password };
+    }
+    throw createError;
+  }
+
+  if (!user || !user.user) {
+    throw new Error(`Не вдалося створити користувача ${email}`);
+  }
+
+  const userId = user.user.id;
+
+  // 2. Прив'язуємо до workspace_users
+  const { error: userError } = await supabase.from("workspace_users").insert({
+    workspace_id: workspaceId,
+    user_id: userId,
+    role,
+    status: "active",
+  });
+
+  if (userError && !userError.message.includes('unique constraint')) {
+    throw userError;
+  }
+
+  return {
+    userId,
+    email,
+    password,
+  };
+}
+

@@ -555,15 +555,17 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
 
 -- Функція для безпечної перевірки ролі користувача у воркспейсі.
-CREATE OR REPLACE FUNCTION public.get_workspace_role(p_workspace_id UUID, p_user_id UUID)
-RETURNS user_role AS $$
+-- Примітка: Функція повертає TEXT, а не ENUM `user_role`, для стандартизації
+-- та уникнення каскадних помилок при зміні ENUM-типу.
+CREATE OR REPLACE FUNCTION public.get_workspace_role(p_user_id UUID, p_workspace_id UUID)
+RETURNS TEXT AS $$
 DECLARE
-  v_role user_role;
+  v_role TEXT;
 BEGIN
   -- Обходить RLS завдяки SECURITY DEFINER
-  SELECT role INTO v_role
+  SELECT role::TEXT INTO v_role
   FROM public.workspace_users
-  WHERE workspace_id = p_workspace_id AND user_id = p_user_id AND status = 'active';
+  WHERE user_id = p_user_id AND workspace_id = p_workspace_id AND status = 'active';
   RETURN v_role;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
