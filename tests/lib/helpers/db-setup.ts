@@ -313,7 +313,7 @@ export async function createTestDeal(
  */
 export async function createTestUser(
   workspaceId: string,
-  role: "manager" | "user",
+  role: "owner" | "admin" | "manager" | "user" | "guest",
   identifier: string,
 ) {
   const supabase = createTestSupabaseClient();
