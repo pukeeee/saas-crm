@@ -1,10 +1,6 @@
 /**
  * Репозиторій для роботи з сутністю 'Activity'.
  * Надає методи для CRUD операцій з активностями (включаючи notes, calls, emails).
- *
- * ВАЖЛИВО: Цей репозиторій ВИПРАВЛЕНО відповідно до реальної схеми БД.
- * Використовує окремі поля (contact_id, deal_id, company_id, task_id) замість
- * generic related_type/related_id паттерну.
  */
 
 import { createServerClient } from "@/shared/supabase/server";
