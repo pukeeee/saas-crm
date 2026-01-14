@@ -312,7 +312,7 @@ export const ContactSchema = z.object({
   tags: z.array(z.string()).default([]),
   source: z.string().max(100).optional().nullable(),
   owner_id: UUIDSchema.nullable(),
-  custom_fields: z.record(z.string(), z.any()).default({}),
+  custom_fields: z.record(z.string(), z.unknown()).default({}),
   created_by: UUIDSchema.nullable(),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
@@ -350,12 +350,12 @@ export const CompanySchema = z.object({
   website: URLSchema.nullable(),
   phone: z.string().max(20).optional().nullable(),
   email: EmailSchema.optional().nullable(),
-  address: z.record(z.string(), z.any()).default({}),
+  address: z.record(z.string(), z.unknown()).default({}),
   status: CompanyStatusSchema,
   tags: z.array(z.string()).default([]),
   source: z.string().max(100).optional().nullable(),
   owner_id: UUIDSchema.nullable(),
-  custom_fields: z.record(z.string(), z.any()).default({}),
+  custom_fields: z.record(z.string(), z.unknown()).default({}),
   created_by: UUIDSchema.nullable(),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
@@ -413,7 +413,7 @@ export const DealSchema = z.object({
   status: DealStatusSchema,
   lost_reason: z.string().max(500).optional().nullable(),
   tags: z.array(z.string()).default([]),
-  custom_fields: z.record(z.string(), z.any()).default({}),
+  custom_fields: z.record(z.string(), z.unknown()).default({}),
   created_by: UUIDSchema.nullable(),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
@@ -555,7 +555,7 @@ export const TaskSchema = z.object({
   priority: TaskPrioritySchema,
   due_date: z.iso.datetime(),
   completed_at: z.iso.datetime().nullable(),
-  reminders: z.array(z.any()).default([]),
+  reminders: z.array(z.unknown()).default([]),
   contact_id: UUIDSchema.nullable(),
   deal_id: UUIDSchema.nullable(),
   result: z.string().max(1000).optional().nullable(),
@@ -594,7 +594,7 @@ export const ActivitySchema = z.object({
   workspace_id: UUIDSchema,
   activity_type: ActivityTypeSchema,
   content: z.string().max(2000).optional().nullable(),
-  metadata: z.record(z.string(), z.any()).default({}),
+  metadata: z.record(z.string(), z.unknown()).default({}),
   contact_id: UUIDSchema.nullable(),
   deal_id: UUIDSchema.nullable(),
   company_id: UUIDSchema.nullable(),
@@ -664,9 +664,9 @@ export type File = z.infer<typeof FileSchema>;
 export const IntegrationsSchema = z.object({
   workspace_id: UUIDSchema,
   nova_poshta_api_key: z.string().nullable(),
-  nova_poshta_settings: z.record(z.string(), z.any()).default({}),
-  smtp_settings: z.record(z.string(), z.any()).default({}),
-  sms_settings: z.record(z.string(), z.any()).default({}),
+  nova_poshta_settings: z.record(z.string(), z.unknown()).default({}),
+  smtp_settings: z.record(z.string(), z.unknown()).default({}),
+  sms_settings: z.record(z.string(), z.unknown()).default({}),
   updated_at: z.iso.datetime(),
 });
 
@@ -686,6 +686,7 @@ export const ApiErrorResponseSchema = z.object({
   success: z.literal(false),
   error: z.string(),
   code: z.string().optional(),
+  details: z.record(z.string(), z.array(z.string())).optional(),
 });
 
 export type ApiSuccessResponse<T> = {
@@ -697,6 +698,7 @@ export type ApiErrorResponse = {
   success: false;
   error: string;
   code?: string;
+  details?: Record<string, string[]>;
 };
 
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
