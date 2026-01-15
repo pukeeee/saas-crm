@@ -26,7 +26,9 @@ async function createTestUser(adminClient: SupabaseClient<Database>) {
 }
 
 /** Створює автентифікований клієнт для вказаного користувача */
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 async function createAuthenticatedClient(email: string, password: string): Promise<SupabaseClient<Database>> {
+  await sleep(500); // Затримка для уникнення rate limit
   const anonClient = createClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
   const { data: { session }, error } = await anonClient.auth.signInWithPassword({ email, password });
   if (error) throw error;
