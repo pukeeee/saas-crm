@@ -16,21 +16,20 @@ import {
   AvatarImage,
 } from "@/shared/components/ui/avatar";
 import { Button } from "@/shared/components/ui/button";
-import { useUser } from "@/shared/hooks/use-auth";
 import { DROPDOWN_MENU_ITEMS } from "../config/dropdown-menu.config";
 import { signOut } from "@/features/auth/actions/auth.actions";
 import { LogOut } from "lucide-react";
+import type { User } from "@supabase/supabase-js";
+
+interface AuthenticatedUserProps {
+  user: User;
+}
 
 /**
  * Компонент для відображення авторизованого користувача
- *
- * Покращення:
- * - Використання useTransition для плавного виходу
- * - Обробка помилок
- * - Оптимізація рендерингу
+ * Получает данные через пропсы (SSR) - нет проблем с гидратацией
  */
-export function AuthenticatedUser() {
-  const { user } = useUser();
+export function AuthenticatedUser({ user }: AuthenticatedUserProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -58,22 +57,15 @@ export function AuthenticatedUser() {
     startTransition(async () => {
       try {
         await signOut();
-        // Після signOut відбудеться редірект,
-        // тому цей код може не виконатись
       } catch (err) {
-        // Ловимо тільки реальні помилки, не NEXT_REDIRECT
         if (err instanceof Error && !err.message.includes("NEXT_REDIRECT")) {
           console.error("Помилка виходу:", err);
           setError("Не вдалося вийти. Спробуйте ще раз.");
-
-          // Очищаємо помилку через 3 секунди
           setTimeout(() => setError(null), 3000);
         }
       }
     });
   };
-
-  if (!user) return null;
 
   const userName = user.user_metadata?.full_name || user.email || "Користувач";
   const userEmail = user.email || "";

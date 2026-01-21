@@ -13,7 +13,7 @@ export function LandingHero() {
   return (
     <section
       id="hero"
-      className="relative w-full py-20 sm:py-20 md:py-28 lg:py-36 overflow-hidden"
+      className="relative w-full py-20 sm:py-20 md:py-24 lg:py-32 overflow-hidden"
     >
       {/* Background gradient */}
       <div className="absolute inset-0 -z-10">
