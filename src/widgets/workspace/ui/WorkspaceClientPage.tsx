@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { useWorkspace } from "@/shared/hooks/use-workspace.hook";
-import { Workspace } from "@/shared/stores/workspace.store";
+import { useState } from "react";
+import { Database } from "@/shared/lib/types/database";
 import { CreateWorkspaceForm } from "@/features/workspace/ui/CreateWorkspaceForm";
 import {
   Dialog,
@@ -11,85 +10,116 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
-import { useCreateWorkspaceModal } from "@/shared/stores/create-workspace-modal.store";
 import { Button } from "@/shared/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { WorkspaceList } from "./WorkspaceList";
 
+type Workspace = Pick<
+  Database["public"]["Tables"]["workspaces"]["Row"],
+  "id" | "name" | "slug"
+>;
+
+/**
+ * @description Пропси для компонента `WorkspaceClientPage`.
+ * @property {Workspace[]} initialWorkspaces - Початковий список воркспейсів, отриманий від серверного компонента.
+ */
 type WorkspaceClientPageProps = {
   initialWorkspaces: Workspace[];
 };
 
 /**
- * Клієнтський компонент для сторінки воркспейсів.
- * Відповідає за ініціалізацію стану, відображення списку або форми створення,
- * а також за модальне вікно створення нового воркспейсу.
+ * Клієнтський компонент-обгортка для сторінки вибору воркспейсів.
+ *
+ * Відповідає за:
+ * 1. Відображення списку воркспейсів (`WorkspaceList`) або стану-заглушки, якщо воркспейсів немає.
+ * 2. Управління станом модального вікна для створення нового воркспейсу.
+ * 3. Передачу даних та колбеків дочірнім компонентам.
+ *
+ * @param {WorkspaceClientPageProps} props - Пропси компонента.
+ * @returns {JSX.Element}
  */
 export function WorkspaceClientPage({
   initialWorkspaces,
 }: WorkspaceClientPageProps) {
-  const { workspaces, setWorkspaces, setCurrentWorkspace, addWorkspace } =
-    useWorkspace();
-  const { isOpen, onOpen, onClose } = useCreateWorkspaceModal();
+  // Локальний стан для контролю видимості діалогового вікна створення воркспейсу.
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Одноразова ініціалізація стору даними, отриманими з сервера.
-  useEffect(() => {
-    setWorkspaces(initialWorkspaces);
-    if (initialWorkspaces.length > 0) {
-      setCurrentWorkspace(initialWorkspaces[0]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Джерелом правди для відображення є пропс `initialWorkspaces`,
+  // який надходить із серверного компонента. Це спрощує логіку стану.
+  const displayWorkspaces = initialWorkspaces;
+  const hasWorkspaces = displayWorkspaces.length > 0;
 
-  const hasWorkspaces = workspaces && workspaces.length > 0;
-
-  // Callback, який буде викликано після успішного створення воркспейсу
-  const handleSuccess = (newWorkspace: Workspace) => {
-    addWorkspace(newWorkspace);
-    setCurrentWorkspace(newWorkspace); // Робимо новий воркспейс активним
-    onClose(); // Закриваємо модальне вікно
+  /**
+   * Обробник успішного створення воркспейсу.
+   * Єдине завдання цього колбека - закрити діалогове вікно.
+   * Оновлення списку воркспейсів відбувається автоматично завдяки `revalidatePath`
+   * в `createWorkspaceAction`, що змушує серверний компонент-батько передати новий `initialWorkspaces`.
+   */
+  const handleSuccessAction = () => {
+    setIsDialogOpen(false);
   };
 
   return (
     <>
-      {/* Діалогове вікно для створення нового воркспейсу */}
-      <Dialog open={isOpen} onOpenChange={onClose}>
+      {/* Діалогове вікно для створення воркспейсу.
+          Його видимість контролюється станом `isDialogOpen`. */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Створити новий воркспейс</DialogTitle>
             <DialogDescription>
-              Дайте назву вашому новому простору для спільної роботи.
+              Введіть назву для нового робочого простору
             </DialogDescription>
           </DialogHeader>
-          <CreateWorkspaceForm onSuccess={handleSuccess} />
+          <CreateWorkspaceForm onSuccessAction={handleSuccessAction} />
         </DialogContent>
       </Dialog>
 
-      <div className="flex min-h-screen w-full items-center justify-center bg-muted/40 p-4">
+      {/* Основний контент сторінки */}
+      <div className="container max-w-6xl py-8">
         {hasWorkspaces ? (
-          <div className="w-full max-w-4xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h1 className="text-2xl font-bold">Ваші воркспейси</h1>
-              <Button onClick={onOpen}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Створити новий
+          // --- Стан, коли воркспейси існують ---
+          <div className="space-y-6">
+            {/* Заголовок сторінки та кнопка "Створити" */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">
+                  Ваші воркспейси
+                </h1>
+                <p className="text-muted-foreground mt-2">
+                  Оберіть воркспейс для роботи або створіть новий
+                </p>
+              </div>
+              <Button onClick={() => setIsDialogOpen(true)} size="lg">
+                <PlusCircle className="mr-2 h-5 w-5" />
+                Створити воркспейс
               </Button>
             </div>
-            <WorkspaceList workspaces={workspaces} />
+
+            {/* Рендеримо список воркспейсів */}
+            <WorkspaceList workspaces={displayWorkspaces} />
           </div>
         ) : (
-          // Якщо воркспейсів немає, показуємо вітальний блок-заглушку
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed bg-background p-12 text-center shadow-sm">
-            <h2 className="text-2xl font-bold">
-              У вас ще немає воркспейсів
-            </h2>
-            <p className="mt-2 text-muted-foreground">
-              Створіть свій перший воркспейс, щоб почати роботу.
-            </p>
-            <Button className="mt-6" onClick={onOpen}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Створити воркспейс
-            </Button>
+          // --- Стан-заглушка, коли воркспейсів немає ---
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <div className="flex flex-col items-center gap-6 rounded-xl border-2 border-dashed bg-muted/30 p-12 text-center max-w-md">
+              <div className="rounded-full bg-primary/10 p-4">
+                <PlusCircle className="h-12 w-12 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold">
+                  Створіть свій перший воркспейс
+                </h2>
+                <p className="text-muted-foreground">
+                  Воркспейси допомагають організувати роботу з клієнтами та
+                  угодами
+                </p>
+              </div>
+              <Button onClick={() => setIsDialogOpen(true)} size="lg">
+                <PlusCircle className="mr-2 h-5 w-5" />
+                Створити воркспейс
+              </Button>
+            </div>
           </div>
         )}
       </div>

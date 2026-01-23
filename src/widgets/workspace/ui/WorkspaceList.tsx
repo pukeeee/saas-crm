@@ -1,32 +1,34 @@
 "use client";
 
+import type { Database } from "@/shared/lib/types/database";
 import { WorkspaceCard } from "@/entities/workspace/ui/WorkspaceCard";
-import { Workspace } from "@/shared/stores/workspace.store";
 
+// Визначаємо локальний тип `Workspace` як підмножину полів з таблиці `workspaces`.
+type Workspace = Pick<
+  Database["public"]["Tables"]["workspaces"]["Row"],
+  "id" | "name" | "slug"
+>;
+
+/**
+ * @description Пропси для компонента `WorkspaceList`.
+ * @property {Workspace[]} workspaces - Масив об'єктів воркспейсів для відображення.
+ */
 type WorkspaceListProps = {
   workspaces: Workspace[];
 };
 
 /**
- * Компонент-фіча для відображення списку воркспейсів.
- * Використовує `WorkspaceCard` для рендерингу кожного елемента.
+ * Компонент для відображення списку воркспейсів у вигляді сітки.
+ * Він отримує масив воркспейсів та ітерує по ньому, рендерячи
+ * для кожного елемента компонент `WorkspaceCard`.
+ *
+ * @param {WorkspaceListProps} props - Пропси компонента.
  */
 export function WorkspaceList({ workspaces }: WorkspaceListProps) {
-  if (workspaces.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
-        <h3 className="text-xl font-medium">У вас ще немає воркспейсів</h3>
-        <p className="text-sm text-muted-foreground">
-          Створіть свій перший, щоб почати роботу.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {workspaces.map((ws) => (
-        <WorkspaceCard key={ws.id} workspace={ws} />
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {workspaces.map((workspace) => (
+        <WorkspaceCard key={workspace.id} workspace={workspace} />
       ))}
     </div>
   );
