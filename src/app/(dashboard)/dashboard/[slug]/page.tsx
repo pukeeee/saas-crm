@@ -1,4 +1,4 @@
-import { AppSidebar } from "@/widgets/sidebar/ui/Sidebar";
+import { AppSidebar } from "@/widgets/dashboard/sidebar/ui/Sidebar";
 import {
   Breadcrumb,
   BreadcrumbItem,
