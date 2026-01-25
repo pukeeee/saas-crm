@@ -2,16 +2,17 @@
 
 import * as React from "react";
 import {
-  AudioWaveform,
+  Handshake,
   BookOpen,
   Bot,
-  Command,
+  ReceiptText,
   Frame,
-  GalleryVerticalEnd,
+  User,
   Map,
   PieChart,
   Settings2,
   SquareTerminal,
+  Wallet,
 } from "lucide-react";
 
 import { NavMain } from "./NavMain";
@@ -34,21 +35,31 @@ const data = {
     email: "m@example.com",
     avatar: "/globe.svg",
   },
-  teams: [
+  main: [
     {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
+      name: "Дашборд",
+      url: "/dashboard",
+      icon: PieChart,
     },
     {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
+      name: "Клієнти",
+      url: "/dashboard/clients",
+      icon: User,
     },
     {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
+      name: "Договора",
+      url: "/dashboard/contract",
+      icon: ReceiptText,
+    },
+    {
+      name: "Справи",
+      url: "/dashboard/deal",
+      icon: Handshake,
+    },
+    {
+      name: "Рахунки",
+      url: "/dashboard/bill",
+      icon: Wallet,
     },
   ],
   navMain: [
@@ -161,9 +172,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
+        <NavProjects projects={data.main} />
         <NavMain items={data.navMain} />
         <NavProjects projects={data.projects} />
       </SidebarContent>

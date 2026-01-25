@@ -10,8 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
-import { Button } from "@/shared/components/ui/button";
-import { PlusCircle } from "lucide-react";
 import { WorkspaceCard } from "@/entities/workspace/ui/WorkspaceCard";
 import { CreateWorkspaceCard } from "@/features/workspace/ui/CreateWorkspaceButton";
 
@@ -47,7 +45,7 @@ export function WorkspaceClientPage({
   // Джерелом правди для відображення є пропс `initialWorkspaces`,
   // який надходить із серверного компонента. Це спрощує логіку стану.
   const displayWorkspaces = initialWorkspaces;
-  const hasWorkspaces = displayWorkspaces.length > 0;
+  // const hasWorkspaces = displayWorkspaces.length > 0;
 
   /**
    * Обробник успішного створення воркспейсу.
@@ -77,55 +75,30 @@ export function WorkspaceClientPage({
 
       {/* Основний контент сторінки */}
       <div className="container max-w-6xl py-8">
-        {hasWorkspaces ? (
-          // --- Стан, коли воркспейси існують ---
-          <div className="space-y-8">
-            {/* Заголовок сторінки */}
-            <div className="space-y-2">
-              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                Ваші воркспейси
-              </h1>
-              <p className="text-sm text-muted-foreground sm:text-base">
-                Оберіть воркспейс для роботи або створіть новий
-              </p>
-            </div>
+        <div className="space-y-8">
+          {/* Заголовок сторінки */}
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              Ваші воркспейси
+            </h1>
+            <p className="text-sm text-muted-foreground sm:text-base">
+              Оберіть воркспейс для роботи або створіть новий
+            </p>
+          </div>
 
-            {/* Обгортка для обмеження максимальної ширини сітки */}
-            <div className="mx-auto max-w-4xl">
-              {/* Адаптивний контейнер для карток */}
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {displayWorkspaces.map((workspace) => (
-                  <WorkspaceCard key={workspace.id} workspace={workspace} />
-                ))}
-                <CreateWorkspaceCard
-                  onClickAction={() => setIsDialogOpen(true)}
-                />
-              </div>
+          {/* Обгортка для обмеження максимальної ширини сітки */}
+          <div className="mx-auto max-w-4xl">
+            {/* Адаптивний контейнер для карток */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {displayWorkspaces.map((workspace) => (
+                <WorkspaceCard key={workspace.id} workspace={workspace} />
+              ))}
+              <CreateWorkspaceCard
+                onClickAction={() => setIsDialogOpen(true)}
+              />
             </div>
           </div>
-        ) : (
-          // --- Стан-заглушка, коли воркспейсів немає ---
-          <div className="flex min-h-[60vh] items-center justify-center">
-            <div className="flex flex-col items-center gap-6 rounded-xl border-2 border-dashed bg-muted/30 p-12 text-center max-w-md">
-              <div className="rounded-full bg-primary/10 p-4">
-                <PlusCircle className="h-12 w-12 text-primary" />
-              </div>
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold">
-                  Створіть свій перший воркспейс
-                </h2>
-                <p className="text-muted-foreground">
-                  Воркспейси допомагають організувати роботу з клієнтами та
-                  угодами
-                </p>
-              </div>
-              <Button onClick={() => setIsDialogOpen(true)} size="lg">
-                <PlusCircle className="mr-2 h-5 w-5" />
-                Створити воркспейс
-              </Button>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     </>
   );
