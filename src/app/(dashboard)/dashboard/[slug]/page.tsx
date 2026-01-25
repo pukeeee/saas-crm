@@ -13,8 +13,16 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/shared/components/ui/sidebar";
+import React from "react";
 
-export default function Page() {
+export default function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = React.use(params);
+  console.log(slug);
+
   return (
     <SidebarProvider>
       <AppSidebar />
