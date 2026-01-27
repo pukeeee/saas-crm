@@ -1,11 +1,11 @@
 /**
  * Barrel file для експорту всіх репозиторіїв.
  * Забезпечує зручний імпорт репозиторіїв у сервісах та екшенах.
- * 
+ *
  * @example
  * import * as ContactRepository from '@/shared/repositories';
  * const contact = await ContactRepository.getById('contact-id');
- * 
+ *
  * @example
  * import { ContactRepository, DealRepository } from '@/shared/repositories';
  * const contact = await ContactRepository.getById('contact-id');
@@ -13,10 +13,8 @@
  */
 
 // Core CRM Entities
-export * as WorkspaceRepository from './workspace.repository';
+export * as WorkspaceRepository from "./workspace.repository";
 export * as ContactRepository from "./contact.repository";
-export * as CompanyRepository from "./company.repository";
-export * as DealRepository from "./deal.repository";
 
 // Additional Entities
 export * as TaskRepository from "./task.repository";
