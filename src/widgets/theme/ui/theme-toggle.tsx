@@ -5,7 +5,7 @@ import { useTheme } from "next-themes";
 import { useCallback } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { useSidebar } from "@/shared/components/ui/sidebar";
-import { cn } from "@/shared/lib/utils/utils";
+import { cn } from "@/shared/lib/utils";
 
 // --- Локальні визначення типів для View Transitions API ---
 interface ViewTransition {

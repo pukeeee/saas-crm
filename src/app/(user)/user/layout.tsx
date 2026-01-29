@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/shared/supabase/server";
-import { UserHeader } from "@/widgets/user/header/ui/UserHeader";
 import { UserSidebar } from "@/widgets/user/sidebar/ui/UserSidebar";
 
 export const metadata: Metadata = {
@@ -31,7 +30,6 @@ export default async function Layout({
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <UserHeader />
       <div className="container flex flex-1 py-6">
         <div className="hidden md:flex">
           <UserSidebar />

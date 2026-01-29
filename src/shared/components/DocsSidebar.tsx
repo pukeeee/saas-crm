@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/shared/lib/utils/utils";
+import { cn } from "@/shared/lib/utils";
 import { X } from "lucide-react";
 
 export function DocsSidebar({

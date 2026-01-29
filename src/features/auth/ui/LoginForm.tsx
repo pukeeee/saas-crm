@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { cn } from "@/shared/lib/utils/utils";
+import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/components/ui/button";
 import {
   Card,

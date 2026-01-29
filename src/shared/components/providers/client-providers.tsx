@@ -58,7 +58,8 @@ function WorkspaceInitializer({ workspaces }: { workspaces: Workspace[] }) {
 
   // КРИТИЧНА ЛОГІКА: ініціалізація ТІЛЬКИ якщо ще не ініціалізовано
   // Це запобігає скиданню store при ре-рендерах
-  if (!store.initialized && workspaces.length > 0) {
+  // ВАЖЛИВО: ініціалізуємо навіть якщо немає воркспейсів, щоб встановити прапорець initialized
+  if (!store.initialized) {
     // СИНХРОННИЙ виклик - відбувається ДО рендеру дочірніх компонентів
     store.setWorkspaces(workspaces);
 

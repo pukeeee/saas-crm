@@ -9,11 +9,18 @@
  */
 
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist_Mono, Geist } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/widgets/theme/model/theme-provider";
 import { ClientProviders } from "@/shared/components/providers/client-providers";
-import { getUserWorkspaces, getCachedUser } from "@/shared/lib/auth/get-user-data";
+import {
+  getUserWorkspaces,
+  getCachedUser,
+} from "@/shared/lib/auth/get-user-data";
+import { Footer } from "@/widgets/main-page/footer/Footer";
+import { MainHeader } from "@/widgets/header/ui/MainHeader";
+import HeaderSkeleton from "@/widgets/header/ui/HeaderSkeleton";
 
 // ============================================================================
 // ШРИФТИ
@@ -77,7 +84,7 @@ export default async function RootLayout({
    */
   const [user, initialWorkspaces] = await Promise.all([
     getCachedUser(),
-    getUserWorkspaces()
+    getUserWorkspaces(),
   ]);
 
   // Debug логування (тільки dev)
@@ -114,7 +121,11 @@ export default async function RootLayout({
             Клієнтські провайдери з SSR даними
           */}
           <ClientProviders initialWorkspaces={initialWorkspaces}>
+            <Suspense fallback={<HeaderSkeleton />}>
+              <MainHeader />
+            </Suspense>
             {children}
+            <Footer />
           </ClientProviders>
         </ThemeProvider>
       </body>

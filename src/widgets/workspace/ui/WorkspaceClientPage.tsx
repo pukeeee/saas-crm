@@ -168,7 +168,7 @@ export function WorkspaceClientPage() {
           </div>
 
           {/* Пустий стан якщо немає воркспейсів */}
-          {workspaces.length === 0 && (
+          {/*{workspaces.length === 0 && (
             <div className="mx-auto max-w-md text-center py-12">
               <h2 className="text-lg font-semibold mb-2">
                 Створіть свій перший воркспейс
@@ -178,7 +178,7 @@ export function WorkspaceClientPage() {
                 всі клієнти, угоди та завдання.
               </p>
             </div>
-          )}
+          )}*/}
         </div>
       </div>
     </>

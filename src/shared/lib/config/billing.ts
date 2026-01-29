@@ -22,7 +22,7 @@ export const WORKSPACE_TIER_LIMITS = {
     contacts: 100,
     deals: 50,
     storage_mb: 500,
-    workspaces: 1, // Ліміт на кількість воркспейсів
+    workspaces: 2, // Ліміт на кількість воркспейсів
   },
   starter: {
     users: 5,
