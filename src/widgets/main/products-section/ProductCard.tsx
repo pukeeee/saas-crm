@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { productsContent } from "@/content/root/products";
+// Видаляємо import { productsContent } from "@/content/main/page/products";
 
 export default function ProductCard({
   title,
   description,
   href,
+  buttonText, // Новий пропс
 }: {
   title: string;
   description: string;
   href: string;
+  buttonText: string; // Типізуємо новий пропс
 }) {
   return (
     <Link href={href} className="group block h-full">
@@ -25,7 +27,7 @@ export default function ProductCard({
           </div>
           <div className="mt-auto pt-4">
             <div className="flex items-center text-sm font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-              {productsContent.productCard.text}
+              {buttonText} {/* Використовуємо buttonText */}
               <ArrowRight className="ml-1 h-3 w-3" />
             </div>
           </div>

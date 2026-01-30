@@ -40,13 +40,14 @@ export const headerContent = {
       title: "Рішення",
       links: [
         {
-          title: "Одинокі адвокати",
+          title: "Соло-юристи",
           description: "Усе необхідне для ведення вашої практики",
           href: routes.solutions.soloLawyers,
         },
         {
           title: "Юридичні фірми",
-          description: "Розширюйте свою фірму за допомогою потужних інструментів",
+          description:
+            "Розширюйте свою фірму за допомогою потужних інструментів",
           href: routes.solutions.lawFirms,
         },
         {

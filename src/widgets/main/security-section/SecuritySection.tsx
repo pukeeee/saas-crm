@@ -3,10 +3,24 @@ import { Button } from "@/shared/components/ui/button";
 import Link from "next/link";
 import { Shield, ArrowRight } from "lucide-react";
 import { ProductMockup } from "@/shared/components/ProductMockup";
-import { securityContent } from "../../../content/root/security";
 
-export default function SecuritySection() {
-  const { header, features, cta } = securityContent;
+interface SecuritySectionProps {
+  content: {
+    header: {
+      tagline: string;
+      title: string;
+      description: string;
+    };
+    features: string[];
+    cta: {
+      text: string;
+      href: string;
+    };
+  };
+}
+
+export default function SecuritySection({ content }: SecuritySectionProps) {
+  const { header, features, cta } = content;
 
   return (
     <section className="py-16 sm:py-20 bg-secondary-foreground text-primary-foreground">

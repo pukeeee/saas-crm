@@ -2,7 +2,8 @@ import { routes } from "@/shared/config/routes";
 
 export const footerContent = {
   homeRoute: routes.home,
-  brandDescription: "Сучасна CRM-система, створена спеціально для юристів. Керуйте справами, клієнтами та виставленням рахунків з упевненістю.",
+  brandDescription:
+    "Сучасна CRM-система, створена спеціально для юристів. Керуйте справами, клієнтами та виставленням рахунків з упевненістю.",
   copyrightText: `© ${new Date().getFullYear()} Justio CRM. Всі права захищені.`,
   socialLinks: {
     twitter: {
@@ -41,7 +42,7 @@ export const footerContent = {
         { label: "Документація", href: routes.resources.docs },
         { label: "Посібники", href: routes.resources.guides },
         { label: "Блог", href: routes.resources.blog },
-        { label: "Журнал змін", href: routes.resources.changelog },
+        { label: "Журнал змін", href: routes.resources.releases },
       ],
     },
     company: {

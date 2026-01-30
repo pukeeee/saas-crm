@@ -1,10 +1,31 @@
 import ProductCard from "./ProductCard";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { productsContent } from "../../../content/root/products";
 
-export default function ProductsSection() {
-  const { header, features, exploreAllFeatures } = productsContent;
+interface ProductsSectionProps {
+  content: {
+    header: {
+      tagline: string;
+      title: string;
+      description: string;
+    };
+    features: Array<{
+      title: string;
+      description: string;
+      href: string;
+    }>;
+    exploreAllFeatures: {
+      text: string;
+      href: string;
+    };
+    productCard: {
+      text: string;
+    };
+  };
+}
+
+export default function ProductsSection({ content }: ProductsSectionProps) {
+  const { header, features, exploreAllFeatures, productCard } = content;
 
   return (
     <section className="py-16 sm:py-20 bg-popover">
@@ -29,6 +50,7 @@ export default function ProductsSection() {
               title={feature.title}
               description={feature.description}
               href={feature.href}
+              buttonText={productCard.text} // Передаємо buttonText
             />
           ))}
           <Link

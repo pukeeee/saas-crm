@@ -16,7 +16,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/shared/components/ui/navigation-menu";
-import { headerContent } from "@/content/root/header";
+import { headerContent } from "@/content/main/header";
 import type { FormattedUserData } from "@/shared/lib/auth/get-user-data";
 
 interface MainHeaderClientProps {
@@ -217,7 +217,9 @@ export function MainHeaderClient({ user }: MainHeaderClientProps) {
                     className="bg-accent hover:bg-accent/90"
                     asChild
                   >
-                    <Link href={headerContent.auth.demoRoute}>{headerContent.auth.requestDemo}</Link>
+                    <Link href={headerContent.auth.demoRoute}>
+                      {headerContent.auth.requestDemo}
+                    </Link>
                   </Button>
                 </>
               )}

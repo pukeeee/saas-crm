@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { footerContent } from "@/content/root/footer";
+import { footerContent } from "@/content/main/footer";
 
 export function Footer() {
   return (

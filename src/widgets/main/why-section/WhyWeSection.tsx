@@ -1,10 +1,34 @@
 "use client";
 
 import { FeatureCard, FeatureGrid } from "@/shared/components/FeatureCard";
-import { whyWeContent } from "@/content/root/why-we";
+import { LucideIcon, Scale, Shield, Clock, FileText } from "lucide-react"; // Імпортуємо всі LucideIcon
 
-export default function WhyWeSection() {
-  const { header, features } = whyWeContent;
+// Мапування назв іконок до їхніх компонентів
+const IconMap: { [key: string]: LucideIcon } = {
+  Scale: Scale,
+  Shield: Shield,
+  Clock: Clock,
+  FileText: FileText,
+};
+
+// Інтерфейс для пропсів WhyWeSection
+interface WhyWeSectionProps {
+  content: {
+    header: {
+      tagline: string;
+      title: string;
+      description: string;
+    };
+    features: Array<{
+      title: string;
+      description: string;
+      icon: string; // Змінено на рядок
+    }>;
+  };
+}
+
+export default function WhyWeSection({ content }: WhyWeSectionProps) {
+  const { header, features } = content;
 
   return (
     <section className="py-16 sm:py-20 lg:py-30 bg-popover">
@@ -25,10 +49,11 @@ export default function WhyWeSection() {
         {/* Feature cards grid */}
         <FeatureGrid columns={4}>
           {features.map((feature, index) => {
+            const IconComponent = IconMap[feature.icon];
             return (
               <FeatureCard
                 key={index}
-                icon={feature.icon}
+                icon={IconComponent}
                 title={feature.title}
                 description={feature.description}
                 variant="bordered"

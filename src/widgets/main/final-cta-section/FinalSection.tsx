@@ -1,10 +1,30 @@
 import Link from "next/link";
 import { Button } from "@/shared/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import { finalCtaContent } from "../../../content/root/final-cta";
 
-export default function FinalSection() {
-  const { header, buttons } = finalCtaContent;
+// Інтерфейс для пропсів FinalSection
+interface FinalSectionProps {
+  content: {
+    header: {
+      title: string;
+      description: string;
+    };
+    buttons: {
+      demo: {
+        text: string;
+        href: string;
+      };
+      pricing: {
+        text: string;
+        href: string;
+      };
+    };
+  };
+}
+
+export default function FinalSection({ content }: FinalSectionProps) {
+  // Приймаємо content як пропс
+  const { header, buttons } = content; // Деструктуризуємо content
 
   return (
     <section className="py-16 sm:py-24 bg-muted">
